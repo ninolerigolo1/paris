@@ -252,7 +252,7 @@ input:focus {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 /* --- Styles de la section Compte --- */

@@ -33,8 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (appSection) appSection.classList.add('hidden');
         if (accountSection) accountSection.classList.add('hidden');
         if (adminSection) adminSection.classList.add('hidden');
+        if (userInfo) userInfo.classList.add('hidden');
 
-        // Afficher l'interface appropriée
+        // Gérer l'affichage en fonction de la connexion de l'utilisateur
         if (user) {
             userInfo.classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
@@ -45,18 +46,24 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 adminBtn.classList.add('hidden');
             }
-
-            // Gérer l'affichage des sections selon la page
-            if (window.location.pathname === '/admin.html' && user.isAdmin) {
-                adminSection.classList.remove('hidden');
-                fetchAdminData();
+            
+            // Gérer l'affichage des sections selon la page actuelle
+            const path = window.location.pathname;
+            if (path.includes('/admin.html')) {
+                if (user.isAdmin) {
+                    adminSection.classList.remove('hidden');
+                    fetchAdminData();
+                } else {
+                    // Si un utilisateur non-admin essaie d'accéder à la page admin, on le redirige
+                    window.location.href = '/';
+                }
             } else {
                 appSection.classList.remove('hidden');
                 fetchEvents();
             }
+
         } else {
             if (authSection) authSection.classList.remove('hidden');
-            userInfo.classList.add('hidden');
         }
     };
 
@@ -120,8 +127,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (accountBtn) {
         accountBtn.addEventListener('click', () => {
-            appSection.classList.add('hidden');
-            accountSection.classList.remove('hidden');
+            if (appSection) appSection.classList.add('hidden');
+            if (accountSection) accountSection.classList.remove('hidden');
+            if (adminSection) adminSection.classList.add('hidden');
             document.getElementById('account-username').textContent = user.username;
             document.getElementById('account-balance').textContent = user.balance;
         });
@@ -172,181 +180,192 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const displayEvents = (events) => {
-        if (eventsList) {
-            eventsList.innerHTML = '';
-            events.forEach(event => {
-                const eventCard = document.createElement('div');
-                eventCard.className = 'event-card';
-                eventCard.innerHTML = `
-                    <h3>${event.title}</h3>
-                    <div class="options-container">
-                        ${event.options.map((option, index) => `
-                            <div class="option">
-                                <span class="option-label">${option.label}</span>
-                                <span class="option-cote">Cote: ${option.cote.toFixed(2)}</span>
-                                <div class="bet-form">
-                                    <input type="number" class="bet-amount" placeholder="Montant du pari" min="1" required>
-                                    <button class="bet-btn" data-event-id="${event.id}" data-option-index="${index}">Parier</button>
-                                </div>
+        if (!eventsList) return;
+        eventsList.innerHTML = '';
+        events.forEach(event => {
+            const eventCard = document.createElement('div');
+            eventCard.className = 'event-card';
+            eventCard.innerHTML = `
+                <h3>${event.title}</h3>
+                <div class="options-container">
+                    ${event.options.map((option, index) => `
+                        <div class="option">
+                            <span class="option-label">${option.label}</span>
+                            <span class="option-cote">Cote: ${option.cote.toFixed(2)}</span>
+                            <div class="bet-form">
+                                <input type="number" class="bet-amount" placeholder="Montant du pari" min="1" required>
+                                <button class="bet-btn" data-event-id="${event.id}" data-option-index="${index}">Parier</button>
                             </div>
-                        `).join('')}
-                    </div>
-                `;
-                eventsList.appendChild(eventCard);
-            });
-            // Ajouter un gestionnaire d'événements pour le pari
-            eventsList.addEventListener('click', async (e) => {
-                if (e.target.classList.contains('bet-btn')) {
-                    const betForm = e.target.closest('.bet-form');
-                    const betAmount = betForm.querySelector('.bet-amount').value;
-                    if (!betAmount || betAmount <= 0) {
-                        return showMessage(appMessage, 'Veuillez entrer un montant valide.', 'error');
-                    }
-                    const eventId = parseInt(e.target.dataset.eventId);
-                    const optionIndex = parseInt(e.target.dataset.optionIndex);
-                    
-                    try {
-                        const response = await fetch('/api/bet', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ username: user.username, eventId, optionIndex, betAmount: parseFloat(betAmount) })
-                        });
-                        const result = await response.json();
-                        if (response.ok) {
-                            user.balance = result.balance;
-                            localStorage.setItem('user', JSON.stringify(user));
-                            showMessage(appMessage, result.message, 'success');
-                            updateUI();
-                        } else {
-                            showMessage(appMessage, result.error, 'error');
-                        }
-                    } catch (error) {
-                        showMessage(appMessage, 'Erreur lors du pari.', 'error');
-                    }
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            eventsList.appendChild(eventCard);
+        });
+        eventsList.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('bet-btn')) {
+                const betForm = e.target.closest('.bet-form');
+                const betAmount = betForm.querySelector('.bet-amount').value;
+                if (!betAmount || betAmount <= 0) {
+                    return showMessage(appMessage, 'Veuillez entrer un montant valide.', 'error');
                 }
-            });
+                const eventId = parseInt(e.target.dataset.eventId);
+                const optionIndex = parseInt(e.target.dataset.optionIndex);
+                
+                try {
+                    const response = await fetch('/api/bet', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: user.username, eventId, optionIndex, betAmount: parseFloat(betAmount) })
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        user.balance = result.balance;
+                        localStorage.setItem('user', JSON.stringify(user));
+                        showMessage(appMessage, result.message, 'success');
+                        updateUI();
+                    } else {
+                        showMessage(appMessage, result.error, 'error');
+                    }
+                } catch (error) {
+                    showMessage(appMessage, 'Erreur lors du pari.', 'error');
+                }
+            }
+        });
+    };
+
+    // Logique spécifique à la page Admin
+    const fetchAdminData = async () => {
+        const adminEventsList = document.getElementById('admin-events-list');
+        const userHistoryList = document.getElementById('user-history-list');
+
+        if (!user || !user.isAdmin) {
+            window.location.href = '/';
+            return;
+        }
+
+        try {
+            // Récupérer la liste des événements pour l'admin
+            const responseEvents = await fetch('/api/events');
+            const events = await responseEvents.json();
+            displayAdminEvents(events);
+
+            // Récupérer l'historique des utilisateurs
+            const responseHistory = await fetch('/api/admin/history');
+            const history = await responseHistory.json();
+            displayUserHistory(history);
+        } catch (error) {
+            console.error('Erreur lors du chargement des données admin:', error);
+            showMessage(document.getElementById('admin-message'), 'Erreur de chargement des données admin.', 'error');
         }
     };
 
+    const displayAdminEvents = (events) => {
+        const adminEventsList = document.getElementById('admin-events-list');
+        if (!adminEventsList) return;
+
+        adminEventsList.innerHTML = '';
+        events.forEach(event => {
+            const eventCard = document.createElement('div');
+            eventCard.className = 'event-card';
+            eventCard.innerHTML = `
+                <h3>${event.title}</h3>
+                <div class="options">
+                    ${event.options.map((option, index) => `
+                        <button class="close-option-btn" data-event-id="${event.id}" data-option-index="${index}">Clôturer sur "${option.label}" (Cote: ${option.cote})</button>
+                    `).join('')}
+                </div>
+            `;
+            adminEventsList.appendChild(eventCard);
+        });
+    };
+
+    const displayUserHistory = (history) => {
+        const userHistoryList = document.getElementById('user-history-list');
+        if (!userHistoryList) return;
+        
+        userHistoryList.innerHTML = '';
+        history.forEach(u => {
+            const userCard = document.createElement('div');
+            userCard.className = 'user-card';
+            userCard.innerHTML = `
+                <h4>${u.username} <span class="admin-badge">${u.isAdmin ? 'Admin' : 'Utilisateur'}</span></h4>
+                <p>Solde actuel : ${u.balance.toFixed(2)} Jetons</p>
+            `;
+            userHistoryList.appendChild(userCard);
+        });
+    };
+
+    const createEventForm = document.getElementById('create-event-form');
+    if (createEventForm) {
+        createEventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('event-title').value;
+            const options = Array.from(document.querySelectorAll('.option-group')).map(group => {
+                return {
+                    label: group.querySelector('.option-label').value,
+                    cote: parseFloat(group.querySelector('.option-cote').value)
+                };
+            });
+            
+            try {
+                const response = await fetch('/api/admin/create-event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, options })
+                });
+                const result = await response.json();
+                showMessage(document.getElementById('admin-message'), result.message, 'success');
+                createEventForm.reset();
+                fetchAdminData();
+            } catch (error) {
+                showMessage(document.getElementById('admin-message'), 'Erreur lors de la création de l\'événement.', 'error');
+            }
+        });
+    }
+
+    const addOptionBtn = document.getElementById('add-option-btn');
+    if (addOptionBtn) {
+        addOptionBtn.addEventListener('click', () => {
+            const optionsContainer = document.getElementById('options-container');
+            const optionIndex = optionsContainer.children.length + 1;
+            const newOptionGroup = document.createElement('div');
+            newOptionGroup.className = 'option-group';
+            newOptionGroup.innerHTML = `
+                <input type="text" class="option-label" placeholder="Libellé option ${optionIndex}" required>
+                <input type="number" class="option-cote" placeholder="Cote ${optionIndex}" step="0.01" required>
+            `;
+            optionsContainer.appendChild(newOptionGroup);
+        });
+    }
+    
+    const adminEventsList = document.getElementById('admin-events-list');
+    if (adminEventsList) {
+        adminEventsList.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('close-option-btn')) {
+                const eventId = parseInt(e.target.dataset.eventId);
+                const winningOptionIndex = parseInt(e.target.dataset.optionIndex);
+                
+                try {
+                    const response = await fetch('/api/admin/close-event', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ eventId, winningOptionIndex })
+                    });
+                    const result = await response.json();
+                    showMessage(document.getElementById('admin-message'), result.message, 'success');
+                    fetchAdminData();
+                } catch (error) {
+                    showMessage(document.getElementById('admin-message'), 'Erreur lors de la clôture de l\'événement.', 'error');
+                }
+            }
+        });
+    }
+
+    // Charger l'utilisateur depuis le stockage local
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
         user = JSON.parse(storedUser);
     }
     updateUI();
-
-    if (window.location.pathname === '/admin.html') {
-        const createEventForm = document.getElementById('create-event-form');
-        const adminEventsList = document.getElementById('admin-events-list');
-        const addOptionBtn = document.getElementById('add-option-btn');
-        const optionsContainer = document.getElementById('options-container');
-        const userHistoryList = document.getElementById('user-history-list');
-
-        const fetchAdminData = async () => {
-            if (!user || !user.isAdmin) {
-                // Rediriger si l'utilisateur n'est pas un admin
-                window.location.href = '/';
-                return;
-            }
-            const responseEvents = await fetch('/api/events');
-            const events = await responseEvents.json();
-            displayAdminEvents(events);
-            const responseHistory = await fetch('/api/admin/history');
-            const history = await responseHistory.json();
-            displayUserHistory(history);
-        };
-
-        const displayAdminEvents = (events) => {
-            adminEventsList.innerHTML = '';
-            events.forEach(event => {
-                const eventCard = document.createElement('div');
-                eventCard.className = 'event-card';
-                eventCard.innerHTML = `
-                    <h3>${event.title}</h3>
-                    <div class="options">
-                        ${event.options.map((option, index) => `
-                            <button class="close-option-btn" data-event-id="${event.id}" data-option-index="${index}">Clôturer sur "${option.label}" (Cote: ${option.cote})</button>
-                        `).join('')}
-                    </div>
-                `;
-                adminEventsList.appendChild(eventCard);
-            });
-        };
-
-        const displayUserHistory = (history) => {
-            userHistoryList.innerHTML = '';
-            history.forEach(u => {
-                const userCard = document.createElement('div');
-                userCard.className = 'user-card';
-                userCard.innerHTML = `
-                    <h4>${u.username} <span class="admin-badge">${u.isAdmin ? 'Admin' : 'Utilisateur'}</span></h4>
-                    <p>Solde actuel : ${u.balance.toFixed(2)} Jetons</p>
-                `;
-                userHistoryList.appendChild(userCard);
-            });
-        };
-
-        if (createEventForm) {
-            createEventForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const title = document.getElementById('event-title').value;
-                const options = Array.from(document.querySelectorAll('.option-group')).map(group => {
-                    return {
-                        label: group.querySelector('.option-label').value,
-                        cote: parseFloat(group.querySelector('.option-cote').value)
-                    };
-                });
-                
-                try {
-                    const response = await fetch('/api/admin/create-event', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ title, options })
-                    });
-                    const result = await response.json();
-                    showMessage(document.getElementById('admin-message'), result.message, 'success');
-                    createEventForm.reset();
-                    fetchAdminData();
-                } catch (error) {
-                    showMessage(document.getElementById('admin-message'), 'Erreur lors de la création de l\'événement.', 'error');
-                }
-            });
-        }
-
-        if (addOptionBtn) {
-            addOptionBtn.addEventListener('click', () => {
-                const optionIndex = optionsContainer.children.length + 1;
-                const newOptionGroup = document.createElement('div');
-                newOptionGroup.className = 'option-group';
-                newOptionGroup.innerHTML = `
-                    <input type="text" class="option-label" placeholder="Libellé option ${optionIndex}" required>
-                    <input type="number" class="option-cote" placeholder="Cote ${optionIndex}" step="0.01" required>
-                `;
-                optionsContainer.appendChild(newOptionGroup);
-            });
-        }
-        
-        if (adminEventsList) {
-            adminEventsList.addEventListener('click', async (e) => {
-                if (e.target.classList.contains('close-option-btn')) {
-                    const eventId = parseInt(e.target.dataset.eventId);
-                    const winningOptionIndex = parseInt(e.target.dataset.optionIndex);
-                    
-                    try {
-                        const response = await fetch('/api/admin/close-event', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ eventId, winningOptionIndex })
-                        });
-                        const result = await response.json();
-                        showMessage(document.getElementById('admin-message'), result.message, 'success');
-                        fetchAdminData();
-                    } catch (error) {
-                        showMessage(document.getElementById('admin-message'), 'Erreur lors de la clôture de l\'événement.', 'error');
-                    }
-                }
-            });
-        }
-
-        fetchAdminData();
-    }
 });
