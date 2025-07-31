@@ -8,24 +8,24 @@ const eventsList = document.getElementById('events-list');
 const authForm = document.getElementById('auth-form');
 const authMessage = document.getElementById('auth-message');
 const logoutBtn = document.getElementById('logout-btn');
+const adminCodeInput = document.getElementById('admin-code'); // NOUVEAU
 
-// NOUVEAU : Récupération des éléments admin (si on est sur la page admin)
 const adminSection = document.getElementById('admin-section');
 const adminMessage = document.getElementById('admin-message');
 const createEventForm = document.getElementById('create-event-form');
 const addOptionBtn = document.getElementById('add-option-btn');
 const optionsContainer = document.getElementById('options-container');
 const adminEventsList = document.getElementById('admin-events-list');
+const userHistoryList = document.getElementById('user-history-list'); // NOUVEAU
 
 let token = localStorage.getItem('token');
 
-// Fonctions API
 const api = {
-    signup: (username, password) => {
+    signup: (username, password, adminCode) => { // NOUVEAU : adminCode en paramètre
         return fetch('/signup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, password, adminCode })
         });
     },
     login: (username, password) => {
@@ -77,6 +77,12 @@ const api = {
             },
             body: JSON.stringify({ eventId, resultOptionId })
         });
+    },
+    // NOUVEAU : API pour obtenir l'historique utilisateur
+    getUsersWithHistory: () => {
+        return fetch('/admin/users-with-history', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }).then(res => res.json());
     }
 };
 
@@ -84,7 +90,6 @@ const showAuth = () => {
     if (authSection) authSection.classList.remove('hidden');
     if (appSection) appSection.classList.add('hidden');
     if (userInfo) userInfo.classList.add('hidden');
-    // Si on est sur la page admin, on redirige vers l'accueil
     if (window.location.pathname === '/admin.html') {
         window.location.href = '/';
     }
@@ -96,15 +101,14 @@ const showApp = (isAdmin) => {
     if (userInfo) userInfo.classList.remove('hidden');
 
     if (isAdmin) {
-        // Redirige vers la page admin si l'utilisateur est admin
         if (window.location.pathname !== '/admin.html') {
             window.location.href = '/admin.html';
         } else {
             if (adminSection) adminSection.classList.remove('hidden');
             fetchAdminEvents();
+            fetchUserHistory(); // NOUVEAU : Appel à la fonction d'historique
         }
     } else {
-        // Pour les utilisateurs non-admin, on s'assure qu'ils sont sur la page principale
         if (window.location.pathname !== '/') {
             window.location.href = '/';
         }
@@ -141,9 +145,8 @@ const fetchEvents = async () => {
                 <button type="submit">Parier</button>
             </form>
         `;
-        if(eventsList) eventsList.appendChild(eventCard);
+        if (eventsList) eventsList.appendChild(eventCard);
     });
-
     if (eventsList) {
         document.querySelectorAll('.bet-form').forEach(form => {
             form.addEventListener('submit', handleBet);
@@ -157,25 +160,42 @@ const fetchAdminEvents = async () => {
     events.forEach(event => {
         const eventCard = document.createElement('div');
         eventCard.className = 'event-card';
-
         let optionsHtml = event.options.map(option => `
             <button class="close-option-btn" data-event-id="${event.id}" data-option-id="${option.id}">
                 Clôturer avec gain pour : ${option.label}
             </button>
         `).join('');
-
         eventCard.innerHTML = `
             <h3>[ID: ${event.id}] ${event.title} (${event.status})</h3>
             <div class="options">${optionsHtml}</div>
         `;
         if (adminEventsList) adminEventsList.appendChild(eventCard);
     });
-
     if (adminEventsList) {
         document.querySelectorAll('.close-option-btn').forEach(btn => {
             btn.addEventListener('click', handleCloseEvent);
         });
     }
+};
+
+// NOUVEAU : Fonction pour afficher l'historique des utilisateurs
+const fetchUserHistory = async () => {
+    const users = await api.getUsersWithHistory();
+    if (userHistoryList) userHistoryList.innerHTML = '';
+    users.forEach(user => {
+        const userCard = document.createElement('div');
+        userCard.className = 'user-card';
+        let betsHtml = user.paris.map(pari => `
+            <li>Sur "${pari.eventName}" a parié ${pari.mise} jetons sur "${pari.pari}"</li>
+        `).join('');
+        userCard.innerHTML = `
+            <h4>${user.username} (ID: ${user.id}) - Solde: ${user.jetons} jetons</h4>
+            ${user.isAdmin ? '<span class="admin-badge">Admin</span>' : ''}
+            <h5>Historique des paris :</h5>
+            <ul>${betsHtml}</ul>
+        `;
+        if (userHistoryList) userHistoryList.appendChild(userCard);
+    });
 };
 
 const handleBet = async (e) => {
@@ -186,7 +206,6 @@ const handleBet = async (e) => {
     
     const selectedOptionBtn = form.previousElementSibling.querySelector('.bet-btn');
     if (!selectedOptionBtn) return alert("Veuillez choisir une option de pari.");
-
     const optionId = parseInt(selectedOptionBtn.dataset.optionId);
 
     const res = await api.parier(eventId, optionId, mise);
@@ -195,7 +214,6 @@ const handleBet = async (e) => {
     fetchBalance();
     form.reset();
 };
-
 
 const handleLogin = async () => {
     const username = document.getElementById('username').value;
@@ -219,8 +237,9 @@ const handleLogin = async () => {
 const handleSignup = async () => {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const adminCode = adminCodeInput ? adminCodeInput.value : ''; // NOUVEAU
     try {
-        const res = await api.signup(username, password);
+        const res = await api.signup(username, password, adminCode); // NOUVEAU : envoie le code admin
         const message = await res.text();
         authMessage.textContent = message;
         authForm.reset();
@@ -245,7 +264,6 @@ const handleCreateEvent = async (e) => {
             cote: parseFloat(group.querySelector('.option-cote').value)
         };
     });
-
     const res = await api.createEvent(title, options);
     if (res.status === 201) {
         adminMessage.textContent = "Événement créé avec succès !";
@@ -267,13 +285,13 @@ const handleCloseEvent = async (e) => {
         adminMessage.textContent = "Événement clôturé et gains distribués !";
         fetchEvents();
         fetchAdminEvents();
+        fetchUserHistory();
     } else {
         const message = await res.text();
         adminMessage.textContent = "Erreur : " + message;
     }
 };
 
-// Écouteurs d'événements
 if (document.getElementById('login-btn')) document.getElementById('login-btn').addEventListener('click', handleLogin);
 if (document.getElementById('signup-btn')) document.getElementById('signup-btn').addEventListener('click', handleSignup);
 if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
@@ -288,9 +306,9 @@ if (addOptionBtn) addOptionBtn.addEventListener('click', () => {
     optionsContainer.appendChild(newOptionGroup);
 });
 
-// Initialisation
 if (token) {
     const userPayload = JSON.parse(atob(token.split('.')[1]));
+    usernameDisplay.textContent = userPayload.username;
     showApp(userPayload.isAdmin);
 } else {
     showAuth();
