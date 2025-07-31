@@ -1,16 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Éléments principaux de l'interface
     const authSection = document.getElementById('auth-section');
     const appSection = document.getElementById('app-section');
     const accountSection = document.getElementById('account-section');
     const adminSection = document.getElementById('admin-section');
     const userInfo = document.getElementById('user-info');
+    const authMessage = document.getElementById('auth-message');
+    const appMessage = document.getElementById('app-message');
+
+    // Boutons de navigation
     const loginBtn = document.getElementById('login-btn');
     const signupBtn = document.getElementById('signup-btn');
     const logoutBtn = document.getElementById('logout-btn');
+    const homeBtn = document.getElementById('home-btn');
     const accountBtn = document.getElementById('account-btn');
     const adminBtn = document.getElementById('admin-btn');
-    const authMessage = document.getElementById('auth-message');
-    const appMessage = document.getElementById('app-message');
+    
+    // Autres éléments
     const eventsList = document.getElementById('events-list');
 
     let user = null;
@@ -22,37 +28,35 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateUI = () => {
+        // Masquer toutes les sections principales par défaut
+        if (authSection) authSection.classList.add('hidden');
+        if (appSection) appSection.classList.add('hidden');
+        if (accountSection) accountSection.classList.add('hidden');
+        if (adminSection) adminSection.classList.add('hidden');
+
+        // Afficher l'interface appropriée
         if (user) {
-            authSection.classList.add('hidden');
             userInfo.classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
             document.getElementById('balance-display').textContent = `${user.balance} Jetons`;
 
-            // Afficher le bouton admin si l'utilisateur est admin
             if (user.isAdmin) {
                 adminBtn.classList.remove('hidden');
             } else {
                 adminBtn.classList.add('hidden');
             }
-            
-            // Si on est sur la page d'accueil, on affiche l'interface classique
-            if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
-                appSection.classList.remove('hidden');
-                accountSection.classList.add('hidden'); // Masquer par défaut la section du compte
-            } else if (window.location.pathname === '/admin.html') {
-                adminSection.classList.remove('hidden');
-            }
-            
-            fetchEvents();
 
-        } else {
-            authSection.classList.remove('hidden');
-            appSection.classList.add('hidden');
-            accountSection.classList.add('hidden');
-            userInfo.classList.add('hidden');
-            if (adminSection) {
-                adminSection.classList.add('hidden');
+            // Gérer l'affichage des sections selon la page
+            if (window.location.pathname === '/admin.html' && user.isAdmin) {
+                adminSection.classList.remove('hidden');
+                fetchAdminData();
+            } else {
+                appSection.classList.remove('hidden');
+                fetchEvents();
             }
+        } else {
+            if (authSection) authSection.classList.remove('hidden');
+            userInfo.classList.add('hidden');
         }
     };
 
@@ -68,7 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 user = result.user;
                 localStorage.setItem('user', JSON.stringify(user));
                 showMessage(authMessage, result.message, 'success');
-                updateUI();
+                // Redirection vers l'interface principale après la connexion
+                window.location.href = '/';
             } else {
                 showMessage(authMessage, result.error, 'error');
             }
@@ -99,33 +104,35 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', () => {
             user = null;
             localStorage.removeItem('user');
-            // Redirection vers la page d'accueil
-            if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+            if (window.location.pathname !== '/') {
                 window.location.href = '/';
+            } else {
+                updateUI();
             }
-            updateUI();
         });
     }
 
-    // Gestion du bouton "Mon Compte"
+    if (homeBtn) {
+        homeBtn.addEventListener('click', () => {
+            window.location.href = '/';
+        });
+    }
+
     if (accountBtn) {
         accountBtn.addEventListener('click', () => {
             appSection.classList.add('hidden');
             accountSection.classList.remove('hidden');
-            // Afficher les infos du compte
             document.getElementById('account-username').textContent = user.username;
             document.getElementById('account-balance').textContent = user.balance;
         });
     }
 
-    // Gestion du bouton "Admin"
     if (adminBtn) {
         adminBtn.addEventListener('click', () => {
             window.location.href = '/admin.html';
         });
     }
 
-    // Logique de changement de mot de passe
     const changePasswordForm = document.getElementById('change-password-form');
     if (changePasswordForm) {
         changePasswordForm.addEventListener('submit', async (e) => {
@@ -172,12 +179,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 eventCard.className = 'event-card';
                 eventCard.innerHTML = `
                     <h3>${event.title}</h3>
-                    <div class="options">
+                    <div class="options-container">
                         ${event.options.map((option, index) => `
                             <div class="option">
                                 <span class="option-label">${option.label}</span>
                                 <span class="option-cote">Cote: ${option.cote.toFixed(2)}</span>
-                                <div class="bet-form hidden">
+                                <div class="bet-form">
                                     <input type="number" class="bet-amount" placeholder="Montant du pari" min="1" required>
                                     <button class="bet-btn" data-event-id="${event.id}" data-option-index="${index}">Parier</button>
                                 </div>
@@ -187,17 +194,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 eventsList.appendChild(eventCard);
             });
+            // Ajouter un gestionnaire d'événements pour le pari
+            eventsList.addEventListener('click', async (e) => {
+                if (e.target.classList.contains('bet-btn')) {
+                    const betForm = e.target.closest('.bet-form');
+                    const betAmount = betForm.querySelector('.bet-amount').value;
+                    if (!betAmount || betAmount <= 0) {
+                        return showMessage(appMessage, 'Veuillez entrer un montant valide.', 'error');
+                    }
+                    const eventId = parseInt(e.target.dataset.eventId);
+                    const optionIndex = parseInt(e.target.dataset.optionIndex);
+                    
+                    try {
+                        const response = await fetch('/api/bet', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username: user.username, eventId, optionIndex, betAmount: parseFloat(betAmount) })
+                        });
+                        const result = await response.json();
+                        if (response.ok) {
+                            user.balance = result.balance;
+                            localStorage.setItem('user', JSON.stringify(user));
+                            showMessage(appMessage, result.message, 'success');
+                            updateUI();
+                        } else {
+                            showMessage(appMessage, result.error, 'error');
+                        }
+                    } catch (error) {
+                        showMessage(appMessage, 'Erreur lors du pari.', 'error');
+                    }
+                }
+            });
         }
     };
 
-    // Charger l'utilisateur depuis le stockage local
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
         user = JSON.parse(storedUser);
     }
     updateUI();
 
-    // Logique spécifique à la page Admin
     if (window.location.pathname === '/admin.html') {
         const createEventForm = document.getElementById('create-event-form');
         const adminEventsList = document.getElementById('admin-events-list');
@@ -206,13 +242,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const userHistoryList = document.getElementById('user-history-list');
 
         const fetchAdminData = async () => {
-            if (!user || !user.isAdmin) return;
-            // Récupérer la liste des événements pour l'admin
+            if (!user || !user.isAdmin) {
+                // Rediriger si l'utilisateur n'est pas un admin
+                window.location.href = '/';
+                return;
+            }
             const responseEvents = await fetch('/api/events');
             const events = await responseEvents.json();
             displayAdminEvents(events);
-
-            // Récupérer l'historique des utilisateurs
             const responseHistory = await fetch('/api/admin/history');
             const history = await responseHistory.json();
             displayUserHistory(history);

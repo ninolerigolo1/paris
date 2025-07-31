@@ -132,14 +132,66 @@ h2 {
     font-weight: 600;
 }
 
-.options {
-    display: flex;
-    flex-wrap: wrap;
+.options-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 15px;
-    margin-bottom: 20px;
 }
 
-.bet-btn, .action-btn {
+.option {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    background-color: #3f556b;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.option-label {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--text-light);
+}
+
+.option-cote {
+    font-style: italic;
+    font-size: 0.9em;
+    color: #95a5a6;
+    margin-top: 5px;
+}
+
+.bet-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.bet-form input {
+    flex-grow: 1;
+    border: none;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.bet-btn {
+    background-color: var(--primary-azure);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.bet-btn:hover {
+    background-color: var(--tertiary-lime);
+}
+
+.action-btn {
     background-color: var(--primary-azure);
     border: none;
     padding: 15px 25px;
@@ -151,7 +203,7 @@ h2 {
     font-size: 1em;
 }
 
-.bet-btn:hover, .action-btn:hover {
+.action-btn:hover {
     background-color: var(--secondary-ochre);
 }
 
