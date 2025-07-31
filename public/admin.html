@@ -3,24 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panneau d'Administration - Paris Tokens</title>
+    <title>Panneau d'Administration - Elite Bet</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <h1>🏆 Panneau d'Administration 🏆</h1>
+        <h1>Elite Bet</h1>
         <div id="user-info" class="hidden">
-            <span id="username-display"></span> | <span id="balance-display">--</span> Jetons
+            <span id="username-display"></span>
+            <span class="separator">|</span>
+            <span id="balance-display">--</span> Jetons
             <button id="logout-btn">Déconnexion</button>
         </div>
     </header>
 
     <main>
-        <section id="admin-section" class="hidden">
-            <h2>Gérer les événements</h2>
+        <section id="admin-section" class="section-container hidden">
+            <h2>Panneau d'administration</h2>
             <div class="admin-panel">
                 <h3>Créer un nouvel événement</h3>
-                <form id="create-event-form">
+                <form id="create-event-form" class="admin-form">
                     <input type="text" id="event-title" placeholder="Titre de l'événement" required>
                     <div id="options-container">
                         <div class="option-group">
@@ -32,15 +37,19 @@
                             <input type="number" class="option-cote" placeholder="Cote 2" step="0.01" required>
                         </div>
                     </div>
-                    <button type="button" id="add-option-btn">Ajouter une option</button>
-                    <button type="submit">Créer l'événement</button>
+                    <button type="button" id="add-option-btn" class="action-btn">Ajouter une option</button>
+                    <button type="submit" class="action-btn">Créer l'événement</button>
                 </form>
                 <p id="admin-message" class="message"></p>
+                
                 <hr>
+                
                 <h3>Clôturer un événement</h3>
                 <div id="admin-events-list"></div>
+                
                 <hr>
-                <h3>Historique des utilisateurs et paris</h3>
+                
+                <h3>Historique des utilisateurs</h3>
                 <div id="user-history-list"></div>
             </div>
         </section>

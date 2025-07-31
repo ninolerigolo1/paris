@@ -1,22 +1,19 @@
 /* Fichier : public/style.css */
 
-/* --- Couleurs de la palette --- */
+/* --- Palette de couleurs --- */
 :root {
-    --primary-green: #2ecc71;  /* Vert vif pour les actions positives */
-    --secondary-pink: #e74c3c; /* Rouge/rose pour les actions importantes */
-    --accent-yellow: #f1c40f;  /* Jaune pour les mises en évidence */
-    --text-light: #ecf0f1;     /* Gris clair pour le texte sur fond sombre */
-    --bg-dark: #2c3e50;        /* Fond principal sombre */
-    --card-bg: #34495e;        /* Fond des cartes plus clair que le fond */
-    --border-color: #4a627d;   /* Bordures discrètes */
-    --input-bg: #34495e;       /* Fond des champs de saisie */
-    --button-primary: var(--primary-green);
-    --button-secondary: var(--secondary-pink);
+    --primary-azure: #3498db;     /* Bleu Azur pour les actions et le design */
+    --secondary-ochre: #e67e22;   /* Jaune Ocre pour les mises en évidence */
+    --tertiary-lime: #2ecc71;     /* Citron Vert pour les succès */
+    --text-light: #ecf0f1;        /* Gris clair pour le texte */
+    --bg-dark: #1c2833;           /* Fond principal sombre */
+    --card-bg: #212f3d;           /* Fond des cartes et modules */
+    --border-color: #34495e;      /* Bordures */
 }
 
 /* --- Styles Généraux --- */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Montserrat', sans-serif;
     background-color: var(--bg-dark);
     color: var(--text-light);
     margin: 0;
@@ -28,34 +25,35 @@ body {
 
 header {
     background-color: var(--card-bg);
-    padding: 20px 40px;
+    padding: 25px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    border-bottom: 2px solid var(--primary-green);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 header h1 {
     margin: 0;
-    font-size: 2.2em;
+    font-size: 2.5em;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    color: var(--primary-azure);
 }
 
 #user-info {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
     font-weight: 600;
+    font-size: 1.1em;
 }
 
 #logout-btn {
-    background-color: var(--secondary-pink);
-    color: var(--text-light);
+    background-color: var(--secondary-ochre);
+    color: white;
     border: none;
-    padding: 8px 15px;
+    padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
@@ -63,102 +61,106 @@ header h1 {
 }
 
 #logout-btn:hover {
-    background-color: #c0392b;
+    background-color: #d35400;
 }
 
 main {
     flex-grow: 1;
-    padding: 30px;
+    padding: 40px;
     max-width: 1200px;
-    margin: 30px auto;
+    margin: 40px auto;
     width: 100%;
 }
 
 h2 {
-    color: var(--primary-green);
-    border-bottom: 2px solid var(--primary-green);
+    color: var(--primary-azure);
+    border-bottom: 2px solid var(--border-color);
     padding-bottom: 10px;
     margin-top: 0;
     text-transform: uppercase;
-    font-size: 1.8em;
+    font-size: 2em;
+    letter-spacing: 1px;
 }
 
 /* --- Sections & Cartes --- */
-section {
+.section-container {
     background-color: var(--card-bg);
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    margin-bottom: 30px;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
+    margin-bottom: 40px;
     border: 1px solid var(--border-color);
 }
 
 .event-card, .user-card {
-    background-color: #3f556b;
-    border-left: 5px solid var(--accent-yellow);
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background-color: #2c3e50;
+    border-left: 5px solid var(--secondary-ochre);
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.event-card:hover, .user-card:hover {
+    transform: translateY(-5px);
 }
 
 .event-card h3, .user-card h4 {
-    color: var(--text-light);
+    color: var(--primary-azure);
     margin-top: 0;
     margin-bottom: 15px;
-    font-size: 1.5em;
+    font-size: 1.6em;
     font-weight: 600;
 }
 
 .options {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 20px;
 }
 
-.bet-btn, .close-option-btn, #add-option-btn, #create-event-form button[type="submit"] {
-    background-color: var(--primary-green);
+.bet-btn, .action-btn {
+    background-color: var(--primary-azure);
     border: none;
-    padding: 12px 20px;
+    padding: 15px 25px;
     border-radius: 8px;
-    color: var(--bg-dark);
+    color: white;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 1em;
 }
 
-.bet-btn:hover, .close-option-btn:hover, #add-option-btn:hover, #create-event-form button[type="submit"]:hover {
-    background-color: var(--accent-yellow);
-    color: var(--bg-dark);
+.bet-btn:hover, .action-btn:hover {
+    background-color: var(--secondary-ochre);
 }
 
-.bet-form, #create-event-form {
+.bet-form, .admin-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
 input[type="text"], input[type="password"], input[type="number"] {
-    padding: 12px;
+    padding: 15px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1em;
     width: 100%;
     box-sizing: border-box;
-    background-color: var(--input-bg);
+    background-color: var(--card-bg);
     color: var(--text-light);
     transition: border-color 0.3s ease;
 }
 
 input::placeholder {
-    color: #95a5a6;
+    color: #7f8c8d;
 }
 
 input:focus {
     outline: none;
-    border-color: var(--primary-green);
+    border-color: var(--primary-azure);
 }
 
 .message {
@@ -168,13 +170,13 @@ input:focus {
     font-weight: 500;
 }
 
-#auth-message.success {
-    background-color: #27ae60;
-    color: white;
+.success {
+    background-color: var(--tertiary-lime);
+    color: var(--bg-dark);
 }
 
-#auth-message.error, #app-message.error, #admin-message.error {
-    background-color: #c0392b;
+.error {
+    background-color: var(--secondary-ochre);
     color: white;
 }
 
@@ -182,7 +184,7 @@ input:focus {
     display: none;
 }
 
-/* --- Styles pour l'interface Admin --- */
+/* --- Styles spécifiques à l'Admin --- */
 .admin-panel {
     background-color: var(--card-bg);
     padding: 30px;
@@ -192,23 +194,25 @@ input:focus {
 
 .admin-panel hr {
     border-color: var(--border-color);
-    margin: 20px 0;
+    margin: 25px 0;
 }
 
 .admin-badge {
-    background-color: var(--accent-yellow);
+    background-color: var(--tertiary-lime);
     color: var(--bg-dark);
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 5px 10px;
+    border-radius: 5px;
     font-weight: bold;
-    font-size: 0.8em;
+    font-size: 0.85em;
+    text-transform: uppercase;
+}
+
+.option-group {
+    display: flex;
+    gap: 15px;
 }
 
 .close-option-btn {
-    background-color: var(--secondary-pink);
+    background-color: var(--secondary-ochre);
     color: white;
-}
-
-.close-option-btn:hover {
-    background-color: #c0392b;
 }

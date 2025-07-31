@@ -3,34 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paris Tokens MVP</title>
+    <title>Elite Bet</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <h1>🏆 Paris Tokens 🏆</h1>
+        <h1>Elite Bet</h1>
         <div id="user-info" class="hidden">
-            <span id="username-display"></span> | <span id="balance-display">--</span> Jetons
+            <span id="username-display"></span>
+            <span class="separator">|</span>
+            <span id="balance-display">--</span> Jetons
             <button id="logout-btn">Déconnexion</button>
         </div>
     </header>
 
     <main>
-        <section id="auth-section">
+        <section id="auth-section" class="section-container">
             <h2>Connexion / Inscription</h2>
-            <form id="auth-form">
+            <form id="auth-form" class="admin-form">
                 <input type="text" id="username" placeholder="Nom d'utilisateur" required>
                 <input type="password" id="password" placeholder="Mot de passe" required>
                 <input type="text" id="admin-code" placeholder="Code Admin (optionnel)">
                 <div class="buttons">
-                    <button type="button" id="login-btn">Se connecter</button>
-                    <button type="button" id="signup-btn">S'inscrire</button>
+                    <button type="button" id="login-btn" class="action-btn">Se connecter</button>
+                    <button type="button" id="signup-btn" class="action-btn">S'inscrire</button>
                 </div>
             </form>
             <p id="auth-message" class="message"></p>
         </section>
 
-        <section id="app-section" class="hidden">
+        <section id="app-section" class="section-container hidden">
             <h2>Événements ouverts</h2>
             <div id="events-list"></div>
             <p id="app-message" class="message"></p>
