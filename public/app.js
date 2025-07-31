@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Éléments principaux de l'interface
     const authSection = document.getElementById('auth-section');
     const signupSection = document.getElementById('create-account-section');
     const appSection = document.getElementById('app-section');
@@ -10,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupMessage = document.getElementById('signup-message');
     const appMessage = document.getElementById('app-message');
 
+    // Boutons de navigation
     const loginBtn = document.getElementById('login-btn');
     const showSignupBtn = document.getElementById('show-signup-btn');
     const showLoginBtn = document.getElementById('show-login-btn');
@@ -18,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const accountBtn = document.getElementById('account-btn');
     const adminBtn = document.getElementById('admin-btn');
     
+    // Autres éléments
     const signupForm = document.getElementById('signup-form');
     const eventsList = document.getElementById('events-list');
     const betsList = document.getElementById('bets-list');
@@ -142,6 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 showMessage(signupMessage, "Les mots de passe ne correspondent pas.", "error");
                 return;
             }
+            if (!username || !password) {
+                showMessage(signupMessage, "Veuillez remplir tous les champs.", "error");
+                return;
+            }
 
             try {
                 const response = await fetch('/api/signup', {
@@ -151,7 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const result = await response.json();
                 if (response.ok) {
-                    showMessage(signupMessage, result.message, 'success');
+                    showMessage(signupMessage, result.message + " Vous pouvez maintenant vous connecter.", 'success');
+                    // Redirection vers la page de connexion après une inscription réussie
                     window.location.hash = '';
                     updateUI();
                 } else {
@@ -296,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const result = await response.json();
                     if (response.ok) {
                         user.balance = result.balance;
+                        if (!user.bets) user.bets = [];
                         user.bets.push({ eventId, optionIndex, amount: parseFloat(betAmount) });
                         localStorage.setItem('user', JSON.stringify(user));
                         showMessage(appMessage, result.message, 'success');
@@ -434,6 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Charger l'utilisateur depuis le stockage local
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
         user = JSON.parse(storedUser);
