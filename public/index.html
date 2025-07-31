@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paris Tokens MVP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🏆 Paris Tokens 🏆</h1>
+        <div id="user-info" class="hidden">
+            <span id="username-display"></span> | <span id="balance-display">--</span> Jetons
+            <button id="logout-btn">Déconnexion</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="auth-section">
+            <h2>Connexion / Inscription</h2>
+            <form id="auth-form">
+                <input type="text" id="username" placeholder="Nom d'utilisateur" required>
+                <input type="password" id="password" placeholder="Mot de passe" required>
+                <div class="buttons">
+                    <button type="button" id="login-btn">Se connecter</button>
+                    <button type="button" id="signup-btn">S'inscrire</button>
+                </div>
+            </form>
+            <p id="auth-message" class="message"></p>
+        </section>
+
+        <section id="app-section" class="hidden">
+            <h2>Événements ouverts</h2>
+            <div id="events-list"></div>
+            <p id="app-message" class="message"></p>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

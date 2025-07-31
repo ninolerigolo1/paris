@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panneau d'Administration - Paris Tokens</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🏆 Panneau d'Administration 🏆</h1>
+        <div id="user-info" class="hidden">
+            <span id="username-display"></span> | <span id="balance-display">--</span> Jetons
+            <button id="logout-btn">Déconnexion</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="admin-section" class="hidden">
+            <h2>Gérer les événements</h2>
+            <div class="admin-panel">
+                <h3>Créer un nouvel événement</h3>
+                <form id="create-event-form">
+                    <input type="text" id="event-title" placeholder="Titre de l'événement" required>
+                    <div id="options-container">
+                        <div class="option-group">
+                            <input type="text" class="option-label" placeholder="Libellé option 1" required>
+                            <input type="number" class="option-cote" placeholder="Cote 1" step="0.01" required>
+                        </div>
+                        <div class="option-group">
+                            <input type="text" class="option-label" placeholder="Libellé option 2" required>
+                            <input type="number" class="option-cote" placeholder="Cote 2" step="0.01" required>
+                        </div>
+                    </div>
+                    <button type="button" id="add-option-btn">Ajouter une option</button>
+                    <button type="submit">Créer l'événement</button>
+                </form>
+                <p id="admin-message" class="message"></p>
+                <hr>
+                <h3>Clôturer un événement</h3>
+                <div id="admin-events-list"></div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
