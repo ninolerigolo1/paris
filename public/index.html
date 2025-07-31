@@ -24,23 +24,42 @@
 
     <main>
         <section id="auth-section" class="section-container">
-            <h2>Connexion / Inscription</h2>
+            <h2>Connexion</h2>
             <form id="auth-form" class="admin-form">
                 <input type="text" id="username" placeholder="Nom d'utilisateur" required>
                 <input type="password" id="password" placeholder="Mot de passe" required>
-                <input type="text" id="admin-code" placeholder="Code Admin (optionnel)">
                 <div class="buttons">
                     <button type="button" id="login-btn" class="action-btn">Se connecter</button>
-                    <button type="button" id="signup-btn" class="action-btn">S'inscrire</button>
                 </div>
+                <p>Pas encore de compte ? <a href="#" id="show-signup-btn">Créez-en un</a></p>
             </form>
             <p id="auth-message" class="message"></p>
+        </section>
+
+        <section id="create-account-section" class="section-container hidden">
+            <h2>Créer un compte</h2>
+            <form id="signup-form" class="admin-form">
+                <input type="text" id="signup-username" placeholder="Nom d'utilisateur" required>
+                <input type="password" id="signup-password" placeholder="Mot de passe" required>
+                <input type="password" id="signup-password-confirm" placeholder="Confirmer le mot de passe" required>
+                <input type="text" id="admin-code" placeholder="Code Admin (optionnel)">
+                <div class="buttons">
+                    <button type="submit" id="signup-submit-btn" class="action-btn">Créer le compte</button>
+                </div>
+                <p>Déjà un compte ? <a href="#" id="show-login-btn">Connectez-vous</a></p>
+            </form>
+            <p id="signup-message" class="message"></p>
         </section>
 
         <section id="app-section" class="section-container hidden">
             <h2>Événements ouverts</h2>
             <div id="events-list"></div>
             <p id="app-message" class="message"></p>
+        </section>
+
+        <section id="my-bets-section" class="section-container hidden">
+            <h2>Mes paris</h2>
+            <div id="bets-list"></div>
         </section>
 
         <section id="account-section" class="section-container hidden">

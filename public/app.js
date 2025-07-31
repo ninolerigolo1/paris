@@ -1,25 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Éléments principaux de l'interface
     const authSection = document.getElementById('auth-section');
+    const signupSection = document.getElementById('create-account-section');
     const appSection = document.getElementById('app-section');
+    const myBetsSection = document.getElementById('my-bets-section');
     const accountSection = document.getElementById('account-section');
     const adminSection = document.getElementById('admin-section');
     const userInfo = document.getElementById('user-info');
     const authMessage = document.getElementById('auth-message');
+    const signupMessage = document.getElementById('signup-message');
     const appMessage = document.getElementById('app-message');
 
-    // Boutons de navigation
     const loginBtn = document.getElementById('login-btn');
-    const signupBtn = document.getElementById('signup-btn');
+    const showSignupBtn = document.getElementById('show-signup-btn');
+    const showLoginBtn = document.getElementById('show-login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const homeBtn = document.getElementById('home-btn');
     const accountBtn = document.getElementById('account-btn');
     const adminBtn = document.getElementById('admin-btn');
     
-    // Autres éléments
+    const signupForm = document.getElementById('signup-form');
     const eventsList = document.getElementById('events-list');
+    const betsList = document.getElementById('bets-list');
 
     let user = null;
+    let allEvents = [];
 
     const showMessage = (element, message, type) => {
         element.textContent = message;
@@ -28,14 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateUI = () => {
-        // Masquer toutes les sections principales par défaut
+        const path = window.location.pathname;
+        const hash = window.location.hash;
+
+        // Reset display
         if (authSection) authSection.classList.add('hidden');
+        if (signupSection) signupSection.classList.add('hidden');
         if (appSection) appSection.classList.add('hidden');
+        if (myBetsSection) myBetsSection.classList.add('hidden');
         if (accountSection) accountSection.classList.add('hidden');
         if (adminSection) adminSection.classList.add('hidden');
         if (userInfo) userInfo.classList.add('hidden');
 
-        // Gérer l'affichage en fonction de la connexion de l'utilisateur
         if (user) {
             userInfo.classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
@@ -46,24 +54,29 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 adminBtn.classList.add('hidden');
             }
-            
-            // Gérer l'affichage des sections selon la page actuelle
-            const path = window.location.pathname;
+
             if (path.includes('/admin.html')) {
                 if (user.isAdmin) {
                     adminSection.classList.remove('hidden');
                     fetchAdminData();
                 } else {
-                    // Si un utilisateur non-admin essaie d'accéder à la page admin, on le redirige
                     window.location.href = '/';
                 }
+            } else if (hash === '#account') {
+                accountSection.classList.remove('hidden');
+                document.getElementById('account-username').textContent = user.username;
+                document.getElementById('account-balance').textContent = user.balance;
             } else {
                 appSection.classList.remove('hidden');
+                myBetsSection.classList.remove('hidden');
                 fetchEvents();
             }
-
         } else {
-            if (authSection) authSection.classList.remove('hidden');
+            if (hash === '#signup') {
+                if (signupSection) signupSection.classList.remove('hidden');
+            } else {
+                if (authSection) authSection.classList.remove('hidden');
+            }
         }
     };
 
@@ -79,7 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 user = result.user;
                 localStorage.setItem('user', JSON.stringify(user));
                 showMessage(authMessage, result.message, 'success');
-                // Redirection vers l'interface principale après la connexion
                 window.location.href = '/';
             } else {
                 showMessage(authMessage, result.error, 'error');
@@ -89,21 +101,66 @@ document.addEventListener('DOMContentLoaded', () => {
             showMessage(authMessage, 'Erreur de connexion au serveur.', 'error');
         }
     };
-
+    
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            if (!username || !password) {
+                showMessage(authMessage, "Veuillez remplir tous les champs.", "error");
+                return;
+            }
             login('/api/login', { username, password });
         });
     }
 
-    if (signupBtn) {
-        signupBtn.addEventListener('click', () => {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+    if (showSignupBtn) {
+        showSignupBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.hash = '#signup';
+            updateUI();
+        });
+    }
+
+    if (showLoginBtn) {
+        showLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.hash = '';
+            updateUI();
+        });
+    }
+
+    if (signupForm) {
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('signup-username').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-password-confirm').value;
             const adminCode = document.getElementById('admin-code').value;
-            login('/api/signup', { username, password, adminCode });
+
+            if (password !== confirmPassword) {
+                showMessage(signupMessage, "Les mots de passe ne correspondent pas.", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, adminCode }),
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage(signupMessage, result.message, 'success');
+                    window.location.hash = '';
+                    updateUI();
+                } else {
+                    showMessage(signupMessage, result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                showMessage(signupMessage, 'Erreur de connexion au serveur.', 'error');
+            }
         });
     }
 
@@ -127,11 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (accountBtn) {
         accountBtn.addEventListener('click', () => {
-            if (appSection) appSection.classList.add('hidden');
-            if (accountSection) accountSection.classList.remove('hidden');
-            if (adminSection) adminSection.classList.add('hidden');
-            document.getElementById('account-username').textContent = user.username;
-            document.getElementById('account-balance').textContent = user.balance;
+            window.location.hash = '#account';
+            updateUI();
         });
     }
 
@@ -171,8 +225,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const fetchEvents = async () => {
         try {
             const response = await fetch('/api/events');
-            const events = await response.json();
-            displayEvents(events);
+            allEvents = await response.json();
+            displayEvents(allEvents);
         } catch (error) {
             console.error('Erreur lors de la récupération des événements:', error);
             showMessage(appMessage, 'Impossible de charger les événements.', 'error');
@@ -180,9 +234,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const displayEvents = (events) => {
-        if (!eventsList) return;
+        if (!eventsList || !betsList) return;
         eventsList.innerHTML = '';
-        events.forEach(event => {
+        betsList.innerHTML = '';
+        const userBets = user.bets || [];
+        const activeEvents = events.filter(event => !userBets.some(bet => bet.eventId === event.id));
+        const userBetEvents = events.filter(event => userBets.some(bet => bet.eventId === event.id));
+        
+        activeEvents.forEach(event => {
             const eventCard = document.createElement('div');
             eventCard.className = 'event-card';
             eventCard.innerHTML = `
@@ -202,6 +261,22 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             eventsList.appendChild(eventCard);
         });
+
+        userBetEvents.forEach(event => {
+            const userBet = userBets.find(bet => bet.eventId === event.id);
+            const betOption = event.options[userBet.optionIndex];
+            const betCard = document.createElement('div');
+            betCard.className = 'event-card my-bet';
+            betCard.innerHTML = `
+                <h3>${event.title}</h3>
+                <p>Votre pari : <strong class="user-bet-label">${betOption.label}</strong></p>
+                <p>Montant : <strong>${userBet.amount}</strong> Jetons</p>
+            `;
+            betsList.appendChild(betCard);
+        });
+    };
+
+    if (eventsList) {
         eventsList.addEventListener('click', async (e) => {
             if (e.target.classList.contains('bet-btn')) {
                 const betForm = e.target.closest('.bet-form');
@@ -221,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const result = await response.json();
                     if (response.ok) {
                         user.balance = result.balance;
+                        user.bets.push({ eventId, optionIndex, amount: parseFloat(betAmount) });
                         localStorage.setItem('user', JSON.stringify(user));
                         showMessage(appMessage, result.message, 'success');
                         updateUI();
@@ -232,9 +308,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
-    };
+    }
 
-    // Logique spécifique à la page Admin
     const fetchAdminData = async () => {
         const adminEventsList = document.getElementById('admin-events-list');
         const userHistoryList = document.getElementById('user-history-list');
@@ -245,12 +320,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Récupérer la liste des événements pour l'admin
             const responseEvents = await fetch('/api/events');
             const events = await responseEvents.json();
             displayAdminEvents(events);
 
-            // Récupérer l'historique des utilisateurs
             const responseHistory = await fetch('/api/admin/history');
             const history = await responseHistory.json();
             displayUserHistory(history);
@@ -339,7 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    const adminEventsList = document.getElementById('admin-events-list');
     if (adminEventsList) {
         adminEventsList.addEventListener('click', async (e) => {
             if (e.target.classList.contains('close-option-btn')) {
@@ -362,10 +434,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Charger l'utilisateur depuis le stockage local
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
         user = JSON.parse(storedUser);
     }
+    window.addEventListener('hashchange', updateUI);
     updateUI();
 });

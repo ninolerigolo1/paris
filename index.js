@@ -6,18 +6,25 @@ const bcrypt = require('bcrypt');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Utilisation de bodyParser pour analyser les corps de requête JSON
 app.use(bodyParser.json());
-
-// Servir les fichiers statiques du dossier 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Base de données simulée en mémoire
+// Simulated in-memory database
 const users = [
-    { username: 'admin', passwordHash: '$2b$10$w82nKj/T2s/y/s.e.h2yJ.u/f7d.Tf/j/q.E.f/w.A/j', isAdmin: true, balance: 1000 }, // 'SuperAdmin2025'
+    { username: 'admin', passwordHash: '$2b$10$w82nKj/T2s/y/s.e.h2yJ.u/f7d.Tf/j/q.E.f/w.A/j', isAdmin: true, balance: 1000, bets: [] }, // 'SuperAdmin2025'
 ];
 const events = [];
 let nextEventId = 1;
+
+// Endpoint to get user's bets
+app.get('/api/user-bets', (req, res) => {
+    const { username } = req.query;
+    const user = users.find(u => u.username === username);
+    if (!user) {
+        return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+    }
+    res.json({ bets: user.bets });
+});
 
 // Endpoint d'inscription
 app.post('/api/signup', async (req, res) => {
@@ -27,9 +34,9 @@ app.post('/api/signup', async (req, res) => {
     }
     const passwordHash = await bcrypt.hash(password, 10);
     const isAdmin = adminCode === 'SuperAdmin2025';
-    const newUser = { username, passwordHash, isAdmin, balance: 1000 };
+    const newUser = { username, passwordHash, isAdmin, balance: 1000, bets: [] };
     users.push(newUser);
-    res.json({ message: 'Inscription réussie !', user: { username, isAdmin, balance: newUser.balance } });
+    res.json({ message: 'Inscription réussie !', user: { username, isAdmin, balance: newUser.balance, bets: newUser.bets } });
 });
 
 // Endpoint de connexion
@@ -37,7 +44,7 @@ app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     const user = users.find(u => u.username === username);
     if (user && await bcrypt.compare(password, user.passwordHash)) {
-        res.json({ message: 'Connexion réussie !', user: { username: user.username, isAdmin: user.isAdmin, balance: user.balance } });
+        res.json({ message: 'Connexion réussie !', user: { username: user.username, isAdmin: user.isAdmin, balance: user.balance, bets: user.bets } });
     } else {
         res.status(401).json({ error: 'Erreur de connexion ou identifiants incorrects.' });
     }
@@ -75,12 +82,18 @@ app.post('/api/bet', (req, res) => {
         return res.status(400).json({ error: 'Impossible de placer le pari.' });
     }
 
+    // Check if the user has already bet on this event
+    if (user.bets.some(bet => bet.eventId === eventId)) {
+        return res.status(400).json({ error: 'Vous avez déjà placé un pari sur cet événement.' });
+    }
+
     if (user.balance < betAmount) {
         return res.status(400).json({ error: 'Solde insuffisant.' });
     }
 
     user.balance -= betAmount;
-    event.options[optionIndex].bets.push({ username, amount: betAmount });
+    user.bets.push({ eventId, optionIndex, amount: betAmount }); // Store the bet in the user object
+    event.options[optionIndex].bets.push({ username, amount: betAmount }); // Also store it in the event object
 
     res.json({ message: 'Pari placé avec succès.', balance: user.balance });
 });
@@ -130,7 +143,6 @@ app.get('/api/admin/history', (req, res) => {
     }));
     res.json(userHistory);
 });
-
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
