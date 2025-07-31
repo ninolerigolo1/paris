@@ -42,7 +42,6 @@
                 <input type="text" id="signup-username" placeholder="Nom d'utilisateur" required>
                 <input type="password" id="signup-password" placeholder="Mot de passe" required>
                 <input type="password" id="signup-password-confirm" placeholder="Confirmer le mot de passe" required>
-                <input type="text" id="admin-code" placeholder="Code Admin (optionnel)">
                 <div class="buttons">
                     <button type="submit" id="signup-submit-btn" class="action-btn">Créer le compte</button>
                 </div>
@@ -78,6 +77,17 @@
                 <button type="submit" class="action-btn">Mettre à jour le mot de passe</button>
             </form>
             <p id="password-message" class="message"></p>
+            
+            <hr>
+
+            <div id="promote-admin-container">
+                <h3>Passer en mode Admin</h3>
+                <form id="promote-admin-form" class="admin-form">
+                    <input type="password" id="admin-code-input" placeholder="Entrer le code administrateur" required>
+                    <button type="submit" class="action-btn">Devenir Admin</button>
+                </form>
+                <p id="promote-message" class="message"></p>
+            </div>
         </section>
     </main>
     <script src="app.js"></script>

@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupForm = document.getElementById('signup-form');
     const eventsList = document.getElementById('events-list');
     const betsList = document.getElementById('bets-list');
+    const promoteAdminForm = document.getElementById('promote-admin-form');
+    const promoteMessage = document.getElementById('promote-message');
+    const promoteAdminContainer = document.getElementById('promote-admin-container');
 
     let user = null;
     let allEvents = [];
@@ -46,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (accountSection) accountSection.classList.add('hidden');
         if (adminSection) adminSection.classList.add('hidden');
         if (userInfo) userInfo.classList.add('hidden');
+        if (promoteAdminContainer) promoteAdminContainer.classList.add('hidden');
+
 
         if (user) {
             userInfo.classList.remove('hidden');
@@ -54,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (user.isAdmin) {
                 adminBtn.classList.remove('hidden');
+                if (promoteAdminContainer) promoteAdminContainer.classList.add('hidden');
             } else {
                 adminBtn.classList.add('hidden');
             }
@@ -69,12 +75,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 accountSection.classList.remove('hidden');
                 document.getElementById('account-username').textContent = user.username;
                 document.getElementById('account-balance').textContent = user.balance;
+                if (!user.isAdmin) {
+                    if (promoteAdminContainer) promoteAdminContainer.classList.remove('hidden');
+                }
             } else {
                 appSection.classList.remove('hidden');
                 myBetsSection.classList.remove('hidden');
                 fetchEvents();
             }
         } else {
+            if (path.includes('/admin.html')) {
+                window.location.href = '/';
+            }
             if (hash === '#signup') {
                 if (signupSection) signupSection.classList.remove('hidden');
             } else {
@@ -95,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 user = result.user;
                 localStorage.setItem('user', JSON.stringify(user));
                 showMessage(authMessage, result.message, 'success');
-                // Mise à jour directe de l'interface sans rechargement de page
                 updateUI();
             } else {
                 showMessage(authMessage, result.error, 'error');
@@ -140,7 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const username = document.getElementById('signup-username').value;
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('signup-password-confirm').value;
-            const adminCode = document.getElementById('admin-code').value;
 
             if (password !== confirmPassword) {
                 showMessage(signupMessage, "Les mots de passe ne correspondent pas.", "error");
@@ -155,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch('/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, adminCode }),
+                    body: JSON.stringify({ username, password }),
                 });
                 const result = await response.json();
                 if (response.ok) {
@@ -226,6 +236,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) {
                 showMessage(passwordMessage, 'Erreur de connexion au serveur.', 'error');
+            }
+        });
+    }
+
+    if (promoteAdminForm) {
+        promoteAdminForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('admin-code-input').value;
+            
+            try {
+                const response = await fetch('/api/promote-to-admin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user.username, code }),
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    user = result.user;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    showMessage(promoteMessage, result.message, 'success');
+                    promoteAdminForm.reset();
+                    updateUI(); // Met à jour l'UI pour afficher le bouton Admin
+                } else {
+                    showMessage(promoteMessage, result.error, 'error');
+                }
+            } catch (error) {
+                showMessage(promoteMessage, 'Erreur de connexion au serveur.', 'error');
             }
         });
     }

@@ -1,149 +1,193 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 const path = require('path');
-const bcrypt = require('bcrypt');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
+const DB_FILE = path.join(__dirname, 'db.json');
 
+// Middleware
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
-// Simulated in-memory database
-const users = [
-    { username: 'admin', passwordHash: '$2b$10$w82nKj/T2s/y/s.e.h2yJ.u/f7d.Tf/j/q.E.f/w.A/j', isAdmin: true, balance: 1000, bets: [] }, // 'SuperAdmin2025'
-];
-const events = [];
-let nextEventId = 1;
+// Admin secret code
+const ADMIN_CODE = 'admin123';
 
-// Endpoint to get user's bets
-app.get('/api/user-bets', (req, res) => {
-    const { username } = req.query;
-    const user = users.find(u => u.username === username);
-    if (!user) {
-        return res.status(404).json({ error: 'Utilisateur non trouvé.' });
+// Load data from db.json
+const loadData = () => {
+    if (fs.existsSync(DB_FILE)) {
+        const data = fs.readFileSync(DB_FILE);
+        return JSON.parse(data);
     }
-    res.json({ bets: user.bets });
-});
+    return { users: [], events: [], nextEventId: 1 };
+};
 
-// Endpoint d'inscription
-app.post('/api/signup', async (req, res) => {
-    const { username, password, adminCode } = req.body;
-    if (users.find(u => u.username === username)) {
-        return res.status(400).json({ error: 'Ce nom d\'utilisateur existe déjà.' });
-    }
-    const passwordHash = await bcrypt.hash(password, 10);
-    const isAdmin = adminCode === 'SuperAdmin2025';
-    const newUser = { username, passwordHash, isAdmin, balance: 1000, bets: [] };
-    users.push(newUser);
-    res.json({ message: 'Inscription réussie !', user: { username, isAdmin, balance: newUser.balance, bets: newUser.bets } });
-});
+// Save data to db.json
+const saveData = (data) => {
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+};
 
-// Endpoint de connexion
-app.post('/api/login', async (req, res) => {
+let db = loadData();
+
+// Helper to find a user
+const findUser = (username) => db.users.find(u => u.username === username);
+
+// API Endpoints
+
+// Signup
+app.post('/api/signup', (req, res) => {
     const { username, password } = req.body;
-    const user = users.find(u => u.username === username);
-    if (user && await bcrypt.compare(password, user.passwordHash)) {
-        res.json({ message: 'Connexion réussie !', user: { username: user.username, isAdmin: user.isAdmin, balance: user.balance, bets: user.bets } });
-    } else {
-        res.status(401).json({ error: 'Erreur de connexion ou identifiants incorrects.' });
+    if (findUser(username)) {
+        return res.status(409).json({ error: 'Ce nom d\'utilisateur existe déjà.' });
     }
+    const newUser = {
+        id: db.users.length + 1,
+        username,
+        password, // In a real app, hash this password!
+        balance: 1000,
+        isAdmin: false,
+        bets: []
+    };
+    db.users.push(newUser);
+    saveData(db);
+    res.json({ message: 'Compte créé avec succès.' });
 });
 
-// Endpoint pour changer le mot de passe
-app.post('/api/change-password', async (req, res) => {
-    const { username, oldPassword, newPassword } = req.body;
-    const user = users.find(u => u.username === username);
+// Login
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    const user = findUser(username);
+    if (user && user.password === password) {
+        // Return a simplified user object for the client
+        const userForClient = {
+            username: user.username,
+            balance: user.balance,
+            isAdmin: user.isAdmin,
+            bets: user.bets,
+        };
+        return res.json({ message: 'Connexion réussie !', user: userForClient });
+    }
+    res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
+});
 
+// Promote to Admin
+app.post('/api/promote-to-admin', (req, res) => {
+    const { username, code } = req.body;
+    if (code !== ADMIN_CODE) {
+        return res.status(403).json({ error: 'Code administrateur incorrect.' });
+    }
+    const user = findUser(username);
+    if (user) {
+        user.isAdmin = true;
+        saveData(db);
+        const userForClient = {
+            username: user.username,
+            balance: user.balance,
+            isAdmin: user.isAdmin,
+            bets: user.bets,
+        };
+        return res.json({ message: 'Promotion réussie ! Vous êtes maintenant administrateur.', user: userForClient });
+    }
+    res.status(404).json({ error: 'Utilisateur non trouvé.' });
+});
+
+// Change Password
+app.post('/api/change-password', (req, res) => {
+    const { username, oldPassword, newPassword } = req.body;
+    const user = findUser(username);
     if (!user) {
         return res.status(404).json({ error: 'Utilisateur non trouvé.' });
     }
-
-    if (!await bcrypt.compare(oldPassword, user.passwordHash)) {
-        return res.status(401).json({ error: 'L\'ancien mot de passe est incorrect.' });
+    if (user.password !== oldPassword) {
+        return res.status(401).json({ error: 'Ancien mot de passe incorrect.' });
     }
-
-    user.passwordHash = await bcrypt.hash(newPassword, 10);
-    res.json({ message: 'Votre mot de passe a été mis à jour avec succès.' });
+    user.password = newPassword;
+    saveData(db);
+    res.json({ message: 'Mot de passe mis à jour avec succès.' });
 });
 
-// Endpoint pour obtenir les événements
+// Get all events
 app.get('/api/events', (req, res) => {
-    res.json(events);
+    res.json(db.events);
 });
 
-// Endpoint pour parier
+// Place a bet
 app.post('/api/bet', (req, res) => {
     const { username, eventId, optionIndex, betAmount } = req.body;
-    const user = users.find(u => u.username === username);
-    const event = events.find(e => e.id === eventId);
-
-    if (!user || !event || event.isClosed) {
-        return res.status(400).json({ error: 'Impossible de placer le pari.' });
+    const user = findUser(username);
+    const event = db.events.find(e => e.id === eventId);
+    
+    if (!user || !event) {
+        return res.status(404).json({ error: 'Utilisateur ou événement non trouvé.' });
     }
-
-    // Check if the user has already bet on this event
-    if (user.bets.some(bet => bet.eventId === eventId)) {
-        return res.status(400).json({ error: 'Vous avez déjà placé un pari sur cet événement.' });
-    }
-
     if (user.balance < betAmount) {
         return res.status(400).json({ error: 'Solde insuffisant.' });
     }
-
+    if (user.bets.some(bet => bet.eventId === eventId)) {
+        return res.status(400).json({ error: 'Vous avez déjà parié sur cet événement.' });
+    }
+    
     user.balance -= betAmount;
-    user.bets.push({ eventId, optionIndex, amount: betAmount }); // Store the bet in the user object
-    event.options[optionIndex].bets.push({ username, amount: betAmount }); // Also store it in the event object
-
-    res.json({ message: 'Pari placé avec succès.', balance: user.balance });
+    user.bets.push({ eventId, optionIndex, amount: betAmount });
+    saveData(db);
+    res.json({ message: 'Pari enregistré.', balance: user.balance });
 });
 
-// Endpoint pour créer un événement (Admin)
+// ADMIN ROUTES
+
+// Create a new event
 app.post('/api/admin/create-event', (req, res) => {
     const { title, options } = req.body;
     const newEvent = {
-        id: nextEventId++,
+        id: db.nextEventId++,
         title,
-        isClosed: false,
-        options: options.map(opt => ({ label: opt.label, cote: opt.cote, bets: [] })),
-        winningOption: null,
+        options,
+        isClosed: false
     };
-    events.push(newEvent);
-    res.json({ message: 'Événement créé avec succès.' });
+    db.events.push(newEvent);
+    saveData(db);
+    res.json({ message: 'Événement créé avec succès.', event: newEvent });
 });
 
-// Endpoint pour clôturer un événement (Admin)
+// Close an event and distribute winnings
 app.post('/api/admin/close-event', (req, res) => {
     const { eventId, winningOptionIndex } = req.body;
-    const event = events.find(e => e.id === eventId);
+    const event = db.events.find(e => e.id === eventId);
     if (!event || event.isClosed) {
         return res.status(400).json({ error: 'Événement non valide ou déjà clos.' });
     }
 
     event.isClosed = true;
-    event.winningOption = winningOptionIndex;
+    const winningCote = event.options[winningOptionIndex].cote;
 
-    // Payer les gagnants
-    event.options[winningOptionIndex].bets.forEach(bet => {
-        const user = users.find(u => u.username === bet.username);
-        if (user) {
-            user.balance += bet.amount * event.options[winningOptionIndex].cote;
-        }
+    db.users.forEach(user => {
+        user.bets.forEach(bet => {
+            if (bet.eventId === eventId && bet.optionIndex === winningOptionIndex) {
+                const winnings = bet.amount * winningCote;
+                user.balance += winnings;
+            }
+        });
+        // Remove closed event bets from user's active bets
+        user.bets = user.bets.filter(bet => bet.eventId !== eventId);
     });
 
-    res.json({ message: 'Événement clos et gagnants payés.' });
+    saveData(db);
+    res.json({ message: 'Événement clos et gains distribués.' });
 });
 
-// Endpoint pour récupérer l'historique de tous les paris
+// Get user history for admin
 app.get('/api/admin/history', (req, res) => {
-    const userHistory = users.map(user => ({
-        username: user.username,
-        balance: user.balance,
-        isAdmin: user.isAdmin
+    // We don't need all user data on the front-end, just a summary
+    const userHistory = db.users.map(u => ({
+        username: u.username,
+        balance: u.balance,
+        isAdmin: u.isAdmin,
     }));
     res.json(userHistory);
 });
 
+// Start the server
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
 });
