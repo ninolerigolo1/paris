@@ -95,7 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 user = result.user;
                 localStorage.setItem('user', JSON.stringify(user));
                 showMessage(authMessage, result.message, 'success');
-                window.location.href = '/';
+                // Redirection immédiate et fiable
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1000); // Délai d'une seconde pour afficher le message
             } else {
                 showMessage(authMessage, result.error, 'error');
             }
@@ -159,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 if (response.ok) {
                     showMessage(signupMessage, result.message + " Vous pouvez maintenant vous connecter.", 'success');
-                    // Redirection vers la page de connexion après une inscription réussie
                     window.location.hash = '';
                     updateUI();
                 } else {
