@@ -32,8 +32,13 @@ header {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
-.site-logo {
-    height: 60px; /* Ajustez la taille si nécessaire */
+header h1 {
+    margin: 0;
+    font-size: 2.5em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--primary-azure);
 }
 
 #user-info {

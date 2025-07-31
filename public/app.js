@@ -443,7 +443,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Charger l'utilisateur depuis le stockage local
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
         user = JSON.parse(storedUser);
