@@ -95,10 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 user = result.user;
                 localStorage.setItem('user', JSON.stringify(user));
                 showMessage(authMessage, result.message, 'success');
-                // Redirection immédiate et fiable
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 1000); // Délai d'une seconde pour afficher le message
+                // Mise à jour directe de l'interface sans rechargement de page
+                updateUI();
             } else {
                 showMessage(authMessage, result.error, 'error');
             }
