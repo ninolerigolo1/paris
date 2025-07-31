@@ -1,0 +1,9 @@
+[
+  {
+    "id": 1,
+    "username": "ni",
+    "password": "$2b$10$W0TBDNPIG6j0hEedU8l35eql.oqyrC46NH7tJ9IEDgTWUXPfe7U5m",
+    "jetons": 1000,
+    "isAdmin": true
+  }
+]

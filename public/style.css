@@ -2,25 +2,24 @@
 
 /* --- Couleurs de la palette --- */
 :root {
-    --primary-green: #A3E4D7; /* Vert clair principal */
-    --secondary-pink: #F8BBD0; /* Rose secondaire */
-    --accent-blue: #87CEEB;   /* Bleu ciel (complémentaire) */
-    --text-dark: #2C3E50;     /* Gris foncé pour le texte */
-    --text-light: #ECF0F1;    /* Gris clair pour le texte sur fond sombre */
-    --bg-light: #F4F6F6;      /* Fond très clair */
-    --bg-dark: #34495E;       /* Fond sombre pour les cartes */
-    --border-color: #BDC3C7;  /* Couleur des bordures */
-    --success-color: #2ECC71; /* Vert de validation */
-    --error-color: #E74C3C;   /* Rouge d'erreur */
+    --primary-green: #2ecc71;  /* Vert vif pour les actions positives */
+    --secondary-pink: #e74c3c; /* Rouge/rose pour les actions importantes */
+    --accent-yellow: #f1c40f;  /* Jaune pour les mises en évidence */
+    --text-light: #ecf0f1;     /* Gris clair pour le texte sur fond sombre */
+    --bg-dark: #2c3e50;        /* Fond principal sombre */
+    --card-bg: #34495e;        /* Fond des cartes plus clair que le fond */
+    --border-color: #4a627d;   /* Bordures discrètes */
+    --input-bg: #34495e;       /* Fond des champs de saisie */
+    --button-primary: var(--primary-green);
+    --button-secondary: var(--secondary-pink);
 }
 
 /* --- Styles Généraux --- */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-light);
-    color: var(--text-dark);
+    background-color: var(--bg-dark);
+    color: var(--text-light);
     margin: 0;
-    padding: 0;
     line-height: 1.6;
     display: flex;
     flex-direction: column;
@@ -28,31 +27,33 @@ body {
 }
 
 header {
-    background-color: var(--primary-green);
-    color: var(--text-dark);
+    background-color: var(--card-bg);
     padding: 20px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid var(--primary-green);
 }
 
 header h1 {
     margin: 0;
     font-size: 2.2em;
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 #user-info {
     display: flex;
     align-items: center;
     gap: 15px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 #logout-btn {
     background-color: var(--secondary-pink);
-    color: white;
+    color: var(--text-light);
     border: none;
     padding: 8px 15px;
     border-radius: 5px;
@@ -62,44 +63,47 @@ header h1 {
 }
 
 #logout-btn:hover {
-    background-color: #e91e63;
+    background-color: #c0392b;
 }
 
 main {
     flex-grow: 1;
-    padding: 20px;
+    padding: 30px;
     max-width: 1200px;
-    margin: 20px auto;
+    margin: 30px auto;
     width: 100%;
 }
 
 h2 {
-    color: var(--text-dark);
-    border-bottom: 2px solid var(--secondary-pink);
+    color: var(--primary-green);
+    border-bottom: 2px solid var(--primary-green);
     padding-bottom: 10px;
     margin-top: 0;
+    text-transform: uppercase;
+    font-size: 1.8em;
 }
 
 /* --- Sections & Cartes --- */
 section {
-    background-color: #fff;
+    background-color: var(--card-bg);
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     margin-bottom: 30px;
+    border: 1px solid var(--border-color);
 }
 
 .event-card, .user-card {
-    background-color: var(--bg-light);
-    border-left: 5px solid var(--primary-green);
+    background-color: #3f556b;
+    border-left: 5px solid var(--accent-yellow);
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .event-card h3, .user-card h4 {
-    color: var(--text-dark);
+    color: var(--text-light);
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.5em;
@@ -118,7 +122,7 @@ section {
     border: none;
     padding: 12px 20px;
     border-radius: 8px;
-    color: var(--text-dark);
+    color: var(--bg-dark);
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -126,14 +130,14 @@ section {
 }
 
 .bet-btn:hover, .close-option-btn:hover, #add-option-btn:hover, #create-event-form button[type="submit"]:hover {
-    background-color: var(--secondary-pink);
-    color: var(--text-dark);
+    background-color: var(--accent-yellow);
+    color: var(--bg-dark);
 }
 
 .bet-form, #create-event-form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
 }
 
 input[type="text"], input[type="password"], input[type="number"] {
@@ -143,29 +147,35 @@ input[type="text"], input[type="password"], input[type="number"] {
     font-size: 1em;
     width: 100%;
     box-sizing: border-box;
+    background-color: var(--input-bg);
+    color: var(--text-light);
     transition: border-color 0.3s ease;
+}
+
+input::placeholder {
+    color: #95a5a6;
 }
 
 input:focus {
     outline: none;
-    border-color: var(--secondary-pink);
+    border-color: var(--primary-green);
 }
 
 .message {
-    padding: 10px;
+    padding: 15px;
     border-radius: 5px;
-    margin-top: 15px;
+    margin-top: 20px;
     font-weight: 500;
 }
 
 #auth-message.success {
-    background-color: #E8F8F5;
-    color: var(--success-color);
+    background-color: #27ae60;
+    color: white;
 }
 
 #auth-message.error, #app-message.error, #admin-message.error {
-    background-color: #FADBD8;
-    color: var(--error-color);
+    background-color: #c0392b;
+    color: white;
 }
 
 .hidden {
@@ -173,66 +183,32 @@ input:focus {
 }
 
 /* --- Styles pour l'interface Admin --- */
-#admin-section .admin-panel {
-    background-color: var(--bg-dark);
-    color: var(--text-light);
+.admin-panel {
+    background-color: var(--card-bg);
     padding: 30px;
     border-radius: 12px;
+    border: 1px solid var(--border-color);
 }
 
-#admin-section h2, #admin-section h3 {
-    color: var(--text-light);
-    border-color: var(--secondary-pink);
-}
-
-#admin-events-list .event-card, #user-history-list .user-card {
-    background-color: #4A637C;
-    border-left-color: var(--secondary-pink);
-    color: var(--text-light);
-}
-
-#admin-events-list .event-card h3, #user-history-list .user-card h4 {
-    color: var(--text-light);
+.admin-panel hr {
+    border-color: var(--border-color);
+    margin: 20px 0;
 }
 
 .admin-badge {
-    background-color: var(--accent-blue);
-    color: white;
+    background-color: var(--accent-yellow);
+    color: var(--bg-dark);
     padding: 4px 8px;
     border-radius: 4px;
     font-weight: bold;
     font-size: 0.8em;
 }
 
-/* Flexbox pour les formulaires admin */
-#create-event-form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.option-group {
-    display: flex;
-    gap: 10px;
-}
-
-.option-group input {
-    background-color: var(--bg-dark);
-    border: 1px solid #7F8C8D;
-    color: var(--text-light);
-}
-
-.option-group input::placeholder {
-    color: #BDC3C7;
-}
-
 .close-option-btn {
     background-color: var(--secondary-pink);
-    color: var(--text-dark);
-    font-weight: bold;
-    border: 1px solid var(--secondary-pink);
+    color: white;
 }
 
 .close-option-btn:hover {
-    background-color: #F4D03F; /* Jaune pour l'action de clôture */
+    background-color: #c0392b;
 }
