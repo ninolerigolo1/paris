@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const promoteAdminForm = document.getElementById('promote-admin-form');
     const promoteMessage = document.getElementById('promote-message');
     const promoteAdminContainer = document.getElementById('promote-admin-container');
+    const adminEventsList = document.getElementById('admin-events-list');
 
     let user = null;
     let allEvents = [];
@@ -51,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userInfo) userInfo.classList.add('hidden');
         if (promoteAdminContainer) promoteAdminContainer.classList.add('hidden');
 
-
         if (user) {
             userInfo.classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
@@ -59,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (user.isAdmin) {
                 adminBtn.classList.remove('hidden');
-                if (promoteAdminContainer) promoteAdminContainer.classList.add('hidden');
             } else {
                 adminBtn.classList.add('hidden');
             }
@@ -196,7 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (homeBtn) {
         homeBtn.addEventListener('click', () => {
-            window.location.href = '/';
+            // Re-render the UI to the main page without a full reload
+            if (window.location.pathname === '/') {
+                window.location.hash = ''; // Clear hash to show main content
+                updateUI();
+            } else {
+                window.location.href = '/';
+            }
         });
     }
 
@@ -257,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('user', JSON.stringify(user));
                     showMessage(promoteMessage, result.message, 'success');
                     promoteAdminForm.reset();
-                    updateUI(); // Met à jour l'UI pour afficher le bouton Admin
+                    updateUI();
                 } else {
                     showMessage(promoteMessage, result.error, 'error');
                 }
@@ -357,7 +362,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const fetchAdminData = async () => {
-        const adminEventsList = document.getElementById('admin-events-list');
         const userHistoryList = document.getElementById('user-history-list');
 
         if (!user || !user.isAdmin) {
@@ -368,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const responseEvents = await fetch('/api/events');
             const events = await responseEvents.json();
-            displayAdminEvents(events);
+            displayAdminEvents(events.filter(event => !event.isClosed));
 
             const responseHistory = await fetch('/api/admin/history');
             const history = await responseHistory.json();
@@ -384,6 +388,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!adminEventsList) return;
 
         adminEventsList.innerHTML = '';
+        if (events.length === 0) {
+            adminEventsList.innerHTML = '<p>Aucun événement ouvert à clôturer.</p>';
+            return;
+        }
+
         events.forEach(event => {
             const eventCard = document.createElement('div');
             eventCard.className = 'event-card';
