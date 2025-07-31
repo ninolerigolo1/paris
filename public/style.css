@@ -49,19 +49,38 @@ header h1 {
     font-size: 1.1em;
 }
 
-#logout-btn {
-    background-color: var(--secondary-ochre);
-    color: white;
-    border: none;
+.nav-btn {
+    background-color: transparent;
+    border: 2px solid var(--primary-azure);
+    color: var(--primary-azure);
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+    background-color: var(--primary-azure);
+    color: var(--bg-dark);
+}
+
+#logout-btn {
+    border-color: var(--secondary-ochre);
+    color: var(--secondary-ochre);
 }
 
 #logout-btn:hover {
-    background-color: #d35400;
+    background-color: var(--secondary-ochre);
+    color: white;
+}
+
+.balance-pill {
+    background-color: var(--tertiary-lime);
+    color: var(--bg-dark);
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: bold;
 }
 
 main {
@@ -184,17 +203,27 @@ input:focus {
     display: none;
 }
 
+/* --- Styles de la section Compte --- */
+.account-details {
+    font-size: 1.2em;
+    line-height: 1.8;
+}
+
+.account-details strong {
+    color: var(--primary-azure);
+}
+
+hr {
+    border-color: var(--border-color);
+    margin: 25px 0;
+}
+
 /* --- Styles spécifiques à l'Admin --- */
 .admin-panel {
     background-color: var(--card-bg);
     padding: 30px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
-}
-
-.admin-panel hr {
-    border-color: var(--border-color);
-    margin: 25px 0;
 }
 
 .admin-badge {

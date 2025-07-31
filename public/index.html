@@ -14,9 +14,10 @@
         <h1>Elite Bet</h1>
         <div id="user-info" class="hidden">
             <span id="username-display"></span>
-            <span class="separator">|</span>
-            <span id="balance-display">--</span> Jetons
-            <button id="logout-btn">Déconnexion</button>
+            <span id="balance-display" class="balance-pill">-- Jetons</span>
+            <button id="account-btn" class="nav-btn">Mon Compte</button>
+            <button id="admin-btn" class="nav-btn hidden">Admin</button>
+            <button id="logout-btn" class="nav-btn">Déconnexion</button>
         </div>
     </header>
 
@@ -39,6 +40,24 @@
             <h2>Événements ouverts</h2>
             <div id="events-list"></div>
             <p id="app-message" class="message"></p>
+        </section>
+
+        <section id="account-section" class="section-container hidden">
+            <h2>Mon Compte</h2>
+            <div class="account-details">
+                <p>Nom d'utilisateur : <strong id="account-username"></strong></p>
+                <p>Solde : <strong id="account-balance"></strong> Jetons</p>
+            </div>
+            
+            <hr>
+            
+            <h3>Changer de mot de passe</h3>
+            <form id="change-password-form" class="admin-form">
+                <input type="password" id="old-password" placeholder="Ancien mot de passe" required>
+                <input type="password" id="new-password" placeholder="Nouveau mot de passe" required>
+                <button type="submit" class="action-btn">Mettre à jour le mot de passe</button>
+            </form>
+            <p id="password-message" class="message"></p>
         </section>
     </main>
     <script src="app.js"></script>

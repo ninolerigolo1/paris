@@ -1,315 +1,315 @@
-// Fichier : public/app.js
-const authSection = document.getElementById('auth-section');
-const appSection = document.getElementById('app-section');
-const userInfo = document.getElementById('user-info');
-const usernameDisplay = document.getElementById('username-display');
-const balanceDisplay = document.getElementById('balance-display');
-const eventsList = document.getElementById('events-list');
-const authForm = document.getElementById('auth-form');
-const authMessage = document.getElementById('auth-message');
-const logoutBtn = document.getElementById('logout-btn');
-const adminCodeInput = document.getElementById('admin-code'); // NOUVEAU
+document.addEventListener('DOMContentLoaded', () => {
+    const authSection = document.getElementById('auth-section');
+    const appSection = document.getElementById('app-section');
+    const accountSection = document.getElementById('account-section');
+    const adminSection = document.getElementById('admin-section');
+    const userInfo = document.getElementById('user-info');
+    const loginBtn = document.getElementById('login-btn');
+    const signupBtn = document.getElementById('signup-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const accountBtn = document.getElementById('account-btn');
+    const adminBtn = document.getElementById('admin-btn');
+    const authMessage = document.getElementById('auth-message');
+    const appMessage = document.getElementById('app-message');
+    const eventsList = document.getElementById('events-list');
 
-const adminSection = document.getElementById('admin-section');
-const adminMessage = document.getElementById('admin-message');
-const createEventForm = document.getElementById('create-event-form');
-const addOptionBtn = document.getElementById('add-option-btn');
-const optionsContainer = document.getElementById('options-container');
-const adminEventsList = document.getElementById('admin-events-list');
-const userHistoryList = document.getElementById('user-history-list'); // NOUVEAU
+    let user = null;
 
-let token = localStorage.getItem('token');
+    const showMessage = (element, message, type) => {
+        element.textContent = message;
+        element.className = `message ${type}`;
+        setTimeout(() => element.textContent = '', 5000);
+    };
 
-const api = {
-    signup: (username, password, adminCode) => { // NOUVEAU : adminCode en paramètre
-        return fetch('/signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, adminCode })
+    const updateUI = () => {
+        if (user) {
+            authSection.classList.add('hidden');
+            userInfo.classList.remove('hidden');
+            document.getElementById('username-display').textContent = user.username;
+            document.getElementById('balance-display').textContent = `${user.balance} Jetons`;
+
+            // Afficher le bouton admin si l'utilisateur est admin
+            if (user.isAdmin) {
+                adminBtn.classList.remove('hidden');
+            } else {
+                adminBtn.classList.add('hidden');
+            }
+            
+            // Si on est sur la page d'accueil, on affiche l'interface classique
+            if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+                appSection.classList.remove('hidden');
+                accountSection.classList.add('hidden'); // Masquer par défaut la section du compte
+            } else if (window.location.pathname === '/admin.html') {
+                adminSection.classList.remove('hidden');
+            }
+            
+            fetchEvents();
+
+        } else {
+            authSection.classList.remove('hidden');
+            appSection.classList.add('hidden');
+            accountSection.classList.add('hidden');
+            userInfo.classList.add('hidden');
+            if (adminSection) {
+                adminSection.classList.add('hidden');
+            }
+        }
+    };
+
+    const login = async (url, data) => {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                user = result.user;
+                localStorage.setItem('user', JSON.stringify(user));
+                showMessage(authMessage, result.message, 'success');
+                updateUI();
+            } else {
+                showMessage(authMessage, result.error, 'error');
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            showMessage(authMessage, 'Erreur de connexion au serveur.', 'error');
+        }
+    };
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            login('/api/login', { username, password });
         });
-    },
-    login: (username, password) => {
-        return fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        }).then(res => res.json());
-    },
-    getEvents: () => {
-        return fetch('/events').then(res => res.json());
-    },
-    getBalance: () => {
-        return fetch('/me/balance', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.json());
-    },
-    parier: (eventId, optionId, mise) => {
-        return fetch('/parier', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ eventId, optionId, mise })
-        });
-    },
-    createEvent: (title, options) => {
-        return fetch('/admin/events', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ title, options })
-        });
-    },
-    getAdminEvents: () => {
-        return fetch('/admin/events', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.json());
-    },
-    closeEvent: (eventId, resultOptionId) => {
-        return fetch('/admin/close', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ eventId, resultOptionId })
-        });
-    },
-    // NOUVEAU : API pour obtenir l'historique utilisateur
-    getUsersWithHistory: () => {
-        return fetch('/admin/users-with-history', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.json());
     }
-};
 
-const showAuth = () => {
-    if (authSection) authSection.classList.remove('hidden');
-    if (appSection) appSection.classList.add('hidden');
-    if (userInfo) userInfo.classList.add('hidden');
-    if (window.location.pathname === '/admin.html') {
-        window.location.href = '/';
+    if (signupBtn) {
+        signupBtn.addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const adminCode = document.getElementById('admin-code').value;
+            login('/api/signup', { username, password, adminCode });
+        });
     }
-};
 
-const showApp = (isAdmin) => {
-    if (authSection) authSection.classList.add('hidden');
-    if (appSection) appSection.classList.remove('hidden');
-    if (userInfo) userInfo.classList.remove('hidden');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            user = null;
+            localStorage.removeItem('user');
+            // Redirection vers la page d'accueil
+            if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+                window.location.href = '/';
+            }
+            updateUI();
+        });
+    }
 
-    if (isAdmin) {
-        if (window.location.pathname !== '/admin.html') {
+    // Gestion du bouton "Mon Compte"
+    if (accountBtn) {
+        accountBtn.addEventListener('click', () => {
+            appSection.classList.add('hidden');
+            accountSection.classList.remove('hidden');
+            // Afficher les infos du compte
+            document.getElementById('account-username').textContent = user.username;
+            document.getElementById('account-balance').textContent = user.balance;
+        });
+    }
+
+    // Gestion du bouton "Admin"
+    if (adminBtn) {
+        adminBtn.addEventListener('click', () => {
             window.location.href = '/admin.html';
-        } else {
-            if (adminSection) adminSection.classList.remove('hidden');
-            fetchAdminEvents();
-            fetchUserHistory(); // NOUVEAU : Appel à la fonction d'historique
-        }
-    } else {
-        if (window.location.pathname !== '/') {
-            window.location.href = '/';
-        }
-        fetchEvents();
-    }
-    fetchBalance();
-};
-
-const fetchBalance = async () => {
-    if (!token) return;
-    const res = await api.getBalance();
-    if (res.jetons !== undefined) {
-        if (balanceDisplay) balanceDisplay.textContent = res.jetons;
-    } else {
-        handleLogout();
-    }
-};
-
-const fetchEvents = async () => {
-    const events = await api.getEvents();
-    if (eventsList) eventsList.innerHTML = '';
-    events.forEach(event => {
-        const eventCard = document.createElement('div');
-        eventCard.className = 'event-card';
-        let optionsHtml = event.options.map(option => `
-            <button class="bet-btn" data-event-id="${event.id}" data-option-id="${option.id}">${option.label} (Cote: ${option.cote})</button>
-        `).join('');
-
-        eventCard.innerHTML = `
-            <h3>${event.title}</h3>
-            <div class="options">${optionsHtml}</div>
-            <form class="bet-form" data-event-id="${event.id}">
-                <input type="number" name="mise" placeholder="Mise en jetons" required min="1">
-                <button type="submit">Parier</button>
-            </form>
-        `;
-        if (eventsList) eventsList.appendChild(eventCard);
-    });
-    if (eventsList) {
-        document.querySelectorAll('.bet-form').forEach(form => {
-            form.addEventListener('submit', handleBet);
         });
     }
-};
 
-const fetchAdminEvents = async () => {
-    const events = await api.getAdminEvents();
-    if (adminEventsList) adminEventsList.innerHTML = '';
-    events.forEach(event => {
-        const eventCard = document.createElement('div');
-        eventCard.className = 'event-card';
-        let optionsHtml = event.options.map(option => `
-            <button class="close-option-btn" data-event-id="${event.id}" data-option-id="${option.id}">
-                Clôturer avec gain pour : ${option.label}
-            </button>
-        `).join('');
-        eventCard.innerHTML = `
-            <h3>[ID: ${event.id}] ${event.title} (${event.status})</h3>
-            <div class="options">${optionsHtml}</div>
-        `;
-        if (adminEventsList) adminEventsList.appendChild(eventCard);
-    });
-    if (adminEventsList) {
-        document.querySelectorAll('.close-option-btn').forEach(btn => {
-            btn.addEventListener('click', handleCloseEvent);
+    // Logique de changement de mot de passe
+    const changePasswordForm = document.getElementById('change-password-form');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const oldPassword = document.getElementById('old-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const passwordMessage = document.getElementById('password-message');
+            
+            try {
+                const response = await fetch('/api/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user.username, oldPassword, newPassword }),
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage(passwordMessage, result.message, 'success');
+                    changePasswordForm.reset();
+                } else {
+                    showMessage(passwordMessage, result.error, 'error');
+                }
+            } catch (error) {
+                showMessage(passwordMessage, 'Erreur de connexion au serveur.', 'error');
+            }
         });
     }
-};
 
-// NOUVEAU : Fonction pour afficher l'historique des utilisateurs
-const fetchUserHistory = async () => {
-    const users = await api.getUsersWithHistory();
-    if (userHistoryList) userHistoryList.innerHTML = '';
-    users.forEach(user => {
-        const userCard = document.createElement('div');
-        userCard.className = 'user-card';
-        let betsHtml = user.paris.map(pari => `
-            <li>Sur "${pari.eventName}" a parié ${pari.mise} jetons sur "${pari.pari}"</li>
-        `).join('');
-        userCard.innerHTML = `
-            <h4>${user.username} (ID: ${user.id}) - Solde: ${user.jetons} jetons</h4>
-            ${user.isAdmin ? '<span class="admin-badge">Admin</span>' : ''}
-            <h5>Historique des paris :</h5>
-            <ul>${betsHtml}</ul>
-        `;
-        if (userHistoryList) userHistoryList.appendChild(userCard);
-    });
-};
-
-const handleBet = async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const eventId = parseInt(form.dataset.eventId);
-    const mise = parseInt(form.querySelector('input[name="mise"]').value);
-    
-    const selectedOptionBtn = form.previousElementSibling.querySelector('.bet-btn');
-    if (!selectedOptionBtn) return alert("Veuillez choisir une option de pari.");
-    const optionId = parseInt(selectedOptionBtn.dataset.optionId);
-
-    const res = await api.parier(eventId, optionId, mise);
-    const message = await res.text();
-    document.getElementById('app-message').textContent = message;
-    fetchBalance();
-    form.reset();
-};
-
-const handleLogin = async () => {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    try {
-        const res = await api.login(username, password);
-        if (res.token) {
-            token = res.token;
-            localStorage.setItem('token', token);
-            const userPayload = JSON.parse(atob(token.split('.')[1]));
-            usernameDisplay.textContent = userPayload.username;
-            showApp(userPayload.isAdmin);
-        } else {
-            authMessage.textContent = "Erreur de connexion.";
+    const fetchEvents = async () => {
+        try {
+            const response = await fetch('/api/events');
+            const events = await response.json();
+            displayEvents(events);
+        } catch (error) {
+            console.error('Erreur lors de la récupération des événements:', error);
+            showMessage(appMessage, 'Impossible de charger les événements.', 'error');
         }
-    } catch (e) {
-        authMessage.textContent = "Erreur de connexion ou identifiants incorrects.";
+    };
+
+    const displayEvents = (events) => {
+        if (eventsList) {
+            eventsList.innerHTML = '';
+            events.forEach(event => {
+                const eventCard = document.createElement('div');
+                eventCard.className = 'event-card';
+                eventCard.innerHTML = `
+                    <h3>${event.title}</h3>
+                    <div class="options">
+                        ${event.options.map((option, index) => `
+                            <div class="option">
+                                <span class="option-label">${option.label}</span>
+                                <span class="option-cote">Cote: ${option.cote.toFixed(2)}</span>
+                                <div class="bet-form hidden">
+                                    <input type="number" class="bet-amount" placeholder="Montant du pari" min="1" required>
+                                    <button class="bet-btn" data-event-id="${event.id}" data-option-index="${index}">Parier</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                eventsList.appendChild(eventCard);
+            });
+        }
+    };
+
+    // Charger l'utilisateur depuis le stockage local
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+        user = JSON.parse(storedUser);
     }
-};
+    updateUI();
 
-const handleSignup = async () => {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const adminCode = adminCodeInput ? adminCodeInput.value : ''; // NOUVEAU
-    try {
-        const res = await api.signup(username, password, adminCode); // NOUVEAU : envoie le code admin
-        const message = await res.text();
-        authMessage.textContent = message;
-        authForm.reset();
-    } catch (e) {
-        authMessage.textContent = "Erreur lors de l'inscription.";
-    }
-};
+    // Logique spécifique à la page Admin
+    if (window.location.pathname === '/admin.html') {
+        const createEventForm = document.getElementById('create-event-form');
+        const adminEventsList = document.getElementById('admin-events-list');
+        const addOptionBtn = document.getElementById('add-option-btn');
+        const optionsContainer = document.getElementById('options-container');
+        const userHistoryList = document.getElementById('user-history-list');
 
-const handleLogout = () => {
-    token = null;
-    localStorage.removeItem('token');
-    showAuth();
-};
+        const fetchAdminData = async () => {
+            if (!user || !user.isAdmin) return;
+            // Récupérer la liste des événements pour l'admin
+            const responseEvents = await fetch('/api/events');
+            const events = await responseEvents.json();
+            displayAdminEvents(events);
 
-const handleCreateEvent = async (e) => {
-    e.preventDefault();
-    const title = document.getElementById('event-title').value;
-    const optionGroups = document.querySelectorAll('#options-container .option-group');
-    const options = Array.from(optionGroups).map(group => {
-        return {
-            label: group.querySelector('.option-label').value,
-            cote: parseFloat(group.querySelector('.option-cote').value)
+            // Récupérer l'historique des utilisateurs
+            const responseHistory = await fetch('/api/admin/history');
+            const history = await responseHistory.json();
+            displayUserHistory(history);
         };
-    });
-    const res = await api.createEvent(title, options);
-    if (res.status === 201) {
-        adminMessage.textContent = "Événement créé avec succès !";
-        createEventForm.reset();
-        fetchEvents();
-        fetchAdminEvents();
-    } else {
-        const message = await res.text();
-        adminMessage.textContent = "Erreur : " + message;
-    }
-};
 
-const handleCloseEvent = async (e) => {
-    const eventId = parseInt(e.target.dataset.eventId);
-    const resultOptionId = parseInt(e.target.dataset.optionId);
-    
-    const res = await api.closeEvent(eventId, resultOptionId);
-    if (res.status === 200) {
-        adminMessage.textContent = "Événement clôturé et gains distribués !";
-        fetchEvents();
-        fetchAdminEvents();
-        fetchUserHistory();
-    } else {
-        const message = await res.text();
-        adminMessage.textContent = "Erreur : " + message;
-    }
-};
+        const displayAdminEvents = (events) => {
+            adminEventsList.innerHTML = '';
+            events.forEach(event => {
+                const eventCard = document.createElement('div');
+                eventCard.className = 'event-card';
+                eventCard.innerHTML = `
+                    <h3>${event.title}</h3>
+                    <div class="options">
+                        ${event.options.map((option, index) => `
+                            <button class="close-option-btn" data-event-id="${event.id}" data-option-index="${index}">Clôturer sur "${option.label}" (Cote: ${option.cote})</button>
+                        `).join('')}
+                    </div>
+                `;
+                adminEventsList.appendChild(eventCard);
+            });
+        };
 
-if (document.getElementById('login-btn')) document.getElementById('login-btn').addEventListener('click', handleLogin);
-if (document.getElementById('signup-btn')) document.getElementById('signup-btn').addEventListener('click', handleSignup);
-if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-if (createEventForm) createEventForm.addEventListener('submit', handleCreateEvent);
-if (addOptionBtn) addOptionBtn.addEventListener('click', () => {
-    const newOptionGroup = document.createElement('div');
-    newOptionGroup.className = 'option-group';
-    newOptionGroup.innerHTML = `
-        <input type="text" class="option-label" placeholder="Libellé option" required>
-        <input type="number" class="option-cote" placeholder="Cote" step="0.01" required>
-    `;
-    optionsContainer.appendChild(newOptionGroup);
+        const displayUserHistory = (history) => {
+            userHistoryList.innerHTML = '';
+            history.forEach(u => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card';
+                userCard.innerHTML = `
+                    <h4>${u.username} <span class="admin-badge">${u.isAdmin ? 'Admin' : 'Utilisateur'}</span></h4>
+                    <p>Solde actuel : ${u.balance.toFixed(2)} Jetons</p>
+                `;
+                userHistoryList.appendChild(userCard);
+            });
+        };
+
+        if (createEventForm) {
+            createEventForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const title = document.getElementById('event-title').value;
+                const options = Array.from(document.querySelectorAll('.option-group')).map(group => {
+                    return {
+                        label: group.querySelector('.option-label').value,
+                        cote: parseFloat(group.querySelector('.option-cote').value)
+                    };
+                });
+                
+                try {
+                    const response = await fetch('/api/admin/create-event', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, options })
+                    });
+                    const result = await response.json();
+                    showMessage(document.getElementById('admin-message'), result.message, 'success');
+                    createEventForm.reset();
+                    fetchAdminData();
+                } catch (error) {
+                    showMessage(document.getElementById('admin-message'), 'Erreur lors de la création de l\'événement.', 'error');
+                }
+            });
+        }
+
+        if (addOptionBtn) {
+            addOptionBtn.addEventListener('click', () => {
+                const optionIndex = optionsContainer.children.length + 1;
+                const newOptionGroup = document.createElement('div');
+                newOptionGroup.className = 'option-group';
+                newOptionGroup.innerHTML = `
+                    <input type="text" class="option-label" placeholder="Libellé option ${optionIndex}" required>
+                    <input type="number" class="option-cote" placeholder="Cote ${optionIndex}" step="0.01" required>
+                `;
+                optionsContainer.appendChild(newOptionGroup);
+            });
+        }
+        
+        if (adminEventsList) {
+            adminEventsList.addEventListener('click', async (e) => {
+                if (e.target.classList.contains('close-option-btn')) {
+                    const eventId = parseInt(e.target.dataset.eventId);
+                    const winningOptionIndex = parseInt(e.target.dataset.optionIndex);
+                    
+                    try {
+                        const response = await fetch('/api/admin/close-event', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ eventId, winningOptionIndex })
+                        });
+                        const result = await response.json();
+                        showMessage(document.getElementById('admin-message'), result.message, 'success');
+                        fetchAdminData();
+                    } catch (error) {
+                        showMessage(document.getElementById('admin-message'), 'Erreur lors de la clôture de l\'événement.', 'error');
+                    }
+                }
+            });
+        }
+
+        fetchAdminData();
+    }
 });
-
-if (token) {
-    const userPayload = JSON.parse(atob(token.split('.')[1]));
-    usernameDisplay.textContent = userPayload.username;
-    showApp(userPayload.isAdmin);
-} else {
-    showAuth();
-}
