@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('login-btn');
     const showSignupBtn = document.getElementById('show-signup-btn');
     const showLoginBtn = document.getElementById('show-login-btn');
-    const logoutBtn = document.getElementById('logout-btn');
+    const logoutBtnInAccount = document.getElementById('logout-btn-in-account');
     const homeBtn = document.getElementById('home-btn');
     const accountBtn = document.getElementById('account-btn');
     const adminBtn = document.getElementById('admin-btn');
@@ -30,7 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const promoteMessage = document.getElementById('promote-message');
     const promoteAdminContainer = document.getElementById('promote-admin-container');
     const adminEventsList = document.getElementById('admin-events-list');
-    const userHistoryList = document.getElementById('user-history-list');
+    const userListAdmin = document.getElementById('user-list-admin');
+    const adminHistorySection = document.getElementById('admin-history-section');
+    const toggleHistoryBtn = document.getElementById('toggle-history-btn');
+    const adminEventsHistoryList = document.getElementById('admin-events-history-list');
 
     let user = null;
     let allEvents = [];
@@ -55,12 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userInfo) userInfo.classList.add('hidden');
         if (promoteAdminContainer) promoteAdminContainer.classList.add('hidden');
         if (leaderboardList) leaderboardList.innerHTML = '';
-
+        if (adminHistorySection) adminHistorySection.classList.add('hidden');
 
         if (user) {
             userInfo.classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
-            document.getElementById('balance-display').textContent = `${user.balance.toFixed(2)} Jetons`;
+            document.getElementById('balance-display').textContent = `${user.balance} Jetons`;
 
             if (user.isAdmin) {
                 adminBtn.classList.remove('hidden');
@@ -78,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (hash === '#account') {
                 accountSection.classList.remove('hidden');
                 document.getElementById('account-username').textContent = user.username;
-                document.getElementById('account-balance').textContent = user.balance.toFixed(2);
+                document.getElementById('account-balance').textContent = user.balance;
                 if (!user.isAdmin) {
                     if (promoteAdminContainer) promoteAdminContainer.classList.remove('hidden');
                 }
@@ -187,20 +190,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            user = null;
-            localStorage.removeItem('user');
-            if (window.location.pathname !== '/') {
-                window.location.href = '/';
-            } else {
-                updateUI();
-            }
-        });
-    }
+    const logout = () => {
+        user = null;
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/') {
+            window.location.href = '/';
+        } else {
+            updateUI();
+        }
+    };
 
+    if (logoutBtnInAccount) {
+        logoutBtnInAccount.addEventListener('click', logout);
+    }
+    
     if (homeBtn) {
-        homeBtn.addEventListener('click', () => {
+        homeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             if (window.location.pathname === '/') {
                 window.location.hash = '';
                 updateUI();
@@ -290,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
             leaderboard.forEach((player, index) => {
                 const rank = index + 1;
                 const li = document.createElement('li');
-                li.innerHTML = `<span>${rank}. ${player.username}</span><span>${player.balance.toFixed(2)} Jetons</span>`;
+                li.innerHTML = `<span>${rank}. ${player.username}</span><span>${player.balance} Jetons</span>`;
                 leaderboardList.appendChild(li);
             });
         } catch (error) {
@@ -367,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         eventsList.addEventListener('click', async (e) => {
             if (e.target.classList.contains('bet-btn')) {
                 const betForm = e.target.closest('.bet-form');
-                const betAmount = betForm.querySelector('.bet-amount').value;
+                const betAmount = parseInt(betForm.querySelector('.bet-amount').value);
                 if (!betAmount || betAmount <= 0) {
                     return showMessage(appMessage, 'Veuillez entrer un montant valide.', 'error');
                 }
@@ -378,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const response = await fetch('/api/bet', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: user.username, eventId, optionIndex, betAmount: parseFloat(betAmount) })
+                        body: JSON.stringify({ username: user.username, eventId, optionIndex, betAmount })
                     });
                     const result = await response.json();
                     if (response.ok) {
@@ -408,12 +414,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const events = await responseEvents.json();
             displayAdminEvents(events.filter(event => !event.isClosed));
 
-            const responseHistory = await fetch('/api/admin/history');
-            const history = await responseHistory.json();
-            displayUserHistory(history);
+            const responseUsers = await fetch('/api/admin/user-list');
+            const users = await responseUsers.json();
+            displayUserListAdmin(users);
         } catch (error) {
             console.error('Erreur lors du chargement des données admin:', error);
             showMessage(document.getElementById('admin-message'), 'Erreur de chargement des données admin.', 'error');
+        }
+    };
+    
+    const fetchAdminHistory = async () => {
+        if (!user || !user.isAdmin) return;
+        try {
+            const response = await fetch('/api/admin/events-history');
+            const history = await response.json();
+            displayEventsHistory(history);
+        } catch (error) {
+            console.error('Erreur lors du chargement de l\'historique des paris:', error);
+            showMessage(document.getElementById('admin-message'), 'Erreur de chargement de l\'historique.', 'error');
         }
     };
 
@@ -433,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>${event.title}</h3>
                 <div class="options">
                     ${event.options.map((option, index) => `
-                        <button class="close-option-btn" data-event-id="${event.id}" data-option-index="${index}">Clôturer sur "${option.label}" (Cote: ${option.cote ? option.cote.toFixed(2) : '??'})</button>
+                        <button class="action-btn close-option-btn" data-event-id="${event.id}" data-option-index="${index}">Clôturer sur "${option.label}" (Cote: ${option.cote ? option.cote.toFixed(2) : '??'})</button>
                     `).join('')}
                 </div>
             `;
@@ -441,23 +459,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const displayUserHistory = (history) => {
-        if (!userHistoryList) return;
+    const displayUserListAdmin = (users) => {
+        if (!userListAdmin) return;
         
-        userHistoryList.innerHTML = '';
-        history.forEach(u => {
+        userListAdmin.innerHTML = '';
+        users.forEach(u => {
             const userCard = document.createElement('div');
             userCard.className = 'user-card';
             userCard.innerHTML = `
                 <div class="user-info-admin">
                     <h4>${u.username} <span class="admin-badge">${u.isAdmin ? 'Admin' : 'Utilisateur'}</span></h4>
-                    <p>Solde actuel : ${u.balance.toFixed(2)} Jetons</p>
+                    <p>Solde actuel : ${u.balance} Jetons</p>
                 </div>
                 ${u.isAdmin ? '' : `<button class="block-btn ${u.isBlocked ? 'blocked' : ''}" data-username="${u.username}">
                     ${u.isBlocked ? 'Débloquer' : 'Bloquer'}
                 </button>`}
             `;
-            userHistoryList.appendChild(userCard);
+            userListAdmin.appendChild(userCard);
+        });
+    };
+    
+    const displayEventsHistory = (history) => {
+        if (!adminEventsHistoryList) return;
+
+        adminEventsHistoryList.innerHTML = '';
+        if (history.length === 0) {
+            adminEventsHistoryList.innerHTML = '<p>Aucun pari n\'a encore été clôturé.</p>';
+            return;
+        }
+
+        history.forEach(event => {
+            const eventCard = document.createElement('div');
+            eventCard.className = 'event-card';
+            eventCard.innerHTML = `
+                <h3>${event.title}</h3>
+                <p>Option gagnante : <strong>${event.options[event.winningOptionIndex].label}</strong></p>
+                <h4>Participants :</h4>
+                <ul class="bet-history-list">
+                    ${event.options.map(option =>
+                        option.bets.map(bet => `
+                            <li class="${bet.isWinner ? 'winner' : 'loser'}">
+                                <span>${bet.username}</span> a parié <strong>${bet.betAmount}</strong> sur "${bet.betOption}"
+                                <span class="result">${bet.isWinner ? `Gains: +${bet.winnings}` : `Perte: ${bet.winnings}`}</span>
+                            </li>
+                        `).join('')
+                    ).join('')}
+                </ul>
+            `;
+            adminEventsHistoryList.appendChild(eventCard);
         });
     };
 
@@ -505,7 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
         adminEventsList.addEventListener('click', async (e) => {
             if (e.target.classList.contains('close-option-btn')) {
                 const eventId = parseInt(e.target.dataset.eventId);
-                const winningOptionIndex = parseInt(e.target.dataset.optionIndex);
+                const winningOptionIndex = parseInt(e.target.dataset.option-index);
                 
                 try {
                     const response = await fetch('/api/admin/close-event', {
@@ -523,8 +572,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    if (userHistoryList) {
-        userHistoryList.addEventListener('click', async (e) => {
+    if (userListAdmin) {
+        userListAdmin.addEventListener('click', async (e) => {
             if (e.target.classList.contains('block-btn')) {
                 const username = e.target.dataset.username;
                 try {
@@ -539,6 +588,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 } catch (error) {
                     showMessage(document.getElementById('admin-message'), 'Erreur lors du blocage du compte.', 'error');
                 }
+            }
+        });
+    }
+    
+    if (toggleHistoryBtn) {
+        toggleHistoryBtn.addEventListener('click', () => {
+            if (adminHistorySection.classList.contains('hidden')) {
+                adminHistorySection.classList.remove('hidden');
+                toggleHistoryBtn.textContent = 'Masquer l\'historique';
+                fetchAdminHistory();
+            } else {
+                adminHistorySection.classList.add('hidden');
+                toggleHistoryBtn.textContent = 'Voir l\'historique des paris';
             }
         });
     }

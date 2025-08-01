@@ -51,8 +51,8 @@ const calculateOdds = (event) => {
     event.options.forEach(option => {
         if (totalAmount > 0 && (option.totalBets || 0) > 0) {
             const probability = (option.totalBets || 0) / totalAmount;
-            // Add a small margin to make it more realistic
-            option.cote = (1 / probability) * 0.95; 
+            // Ensure cote is never below 1.05
+            option.cote = Math.max(1.05, Math.floor((1 / probability) * 0.95 * 100) / 100);
         } else {
             option.cote = 1.05; // Default odds if no bets
         }
@@ -204,7 +204,8 @@ app.post('/api/admin/create-event', (req, res) => {
         options: options.map(opt => ({
             label: opt.label,
             cote: 1.05,
-            totalBets: 0
+            totalBets: 0,
+            bets: [] // Store individual bets for history
         })),
         isClosed: false
     };
@@ -222,14 +223,29 @@ app.post('/api/admin/close-event', (req, res) => {
     }
 
     event.isClosed = true;
+    event.winningOptionIndex = winningOptionIndex;
     const winningOption = event.options[winningOptionIndex];
     const winningCote = winningOption.cote;
 
     db.users.forEach(user => {
-        const userBet = user.bets.find(bet => bet.eventId === eventId && bet.optionIndex === winningOptionIndex);
+        const userBet = user.bets.find(bet => bet.eventId === eventId);
         if (userBet) {
-            const winnings = userBet.amount * winningCote;
-            user.balance += winnings;
+            const betResult = {
+                username: user.username,
+                betAmount: userBet.amount,
+                betOption: event.options[userBet.optionIndex].label,
+                isWinner: userBet.optionIndex === winningOptionIndex,
+                winnings: 0
+            };
+            if (betResult.isWinner) {
+                const winnings = Math.round(userBet.amount * winningCote);
+                user.balance += winnings;
+                betResult.winnings = winnings;
+            } else {
+                betResult.winnings = -userBet.amount;
+            }
+            // Add bet result to event history
+            event.options[userBet.optionIndex].bets.push(betResult);
         }
     });
 
@@ -257,15 +273,21 @@ app.post('/api/admin/block-user', (req, res) => {
     res.json({ message: `Le compte de ${username} a été ${user.isBlocked ? 'bloqué' : 'débloqué'}.` });
 });
 
-// Get user history for admin
-app.get('/api/admin/history', (req, res) => {
-    const userHistory = db.users.map(u => ({
+// Get user list for admin
+app.get('/api/admin/user-list', (req, res) => {
+    const userList = db.users.map(u => ({
         username: u.username,
         balance: u.balance,
         isAdmin: u.isAdmin,
         isBlocked: u.isBlocked
     }));
-    res.json(userHistory);
+    res.json(userList);
+});
+
+// Get detailed event history for admin
+app.get('/api/admin/events-history', (req, res) => {
+    const closedEvents = db.events.filter(e => e.isClosed);
+    res.json(closedEvents);
 });
 
 // Start the server

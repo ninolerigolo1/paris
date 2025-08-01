@@ -1,22 +1,22 @@
 /* Fichier : public/style.css */
 
-/* --- Palette de couleurs --- */
+/* --- Nouvelle palette de couleurs --- */
 :root {
-    --primary-azure: #3498db;     /* Bleu Azur pour les actions et le design */
-    --secondary-ochre: #e67e22;   /* Jaune Ocre pour les mises en évidence */
-    --tertiary-lime: #2ecc71;     /* Citron Vert pour les succès */
-    --text-light: #ecf0f1;        /* Gris clair pour le texte */
-    --bg-dark: #1c2833;           /* Fond principal sombre */
-    --card-bg: #212f3d;           /* Fond des cartes et modules */
-    --border-color: #34495e;      /* Bordures */
-    --red-alert: #e74c3c;         /* Rouge pour les alertes/erreurs */
+    --primary-blue: #2962FF;       /* Bleu électrique */
+    --bg-light: #F0F2F5;           /* Fond global (gris très clair) */
+    --text-dark: #263238;          /* Texte (gris foncé) */
+    --feedback-positive: #00C853;  /* Vert menthe */
+    --feedback-negative: #FF3D00;  /* Rouge/Orange pour les erreurs */
+    --card-bg: #FFFFFF;            /* Fond des cartes (blanc) */
+    --border-color: #E0E0E0;       /* Bordures */
+    --secondary-gray: #B0BEC5;     /* Gris pour les textes secondaires */
 }
 
 /* --- Styles Généraux --- */
 body {
     font-family: 'Montserrat', sans-serif;
-    background-color: var(--bg-dark);
-    color: var(--text-light);
+    background-color: var(--bg-light);
+    color: var(--text-dark);
     margin: 0;
     line-height: 1.6;
     display: flex;
@@ -26,11 +26,17 @@ body {
 
 header {
     background-color: var(--card-bg);
-    padding: 25px 40px;
+    padding: 20px 40px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+header .home-link {
+    text-decoration: none;
+    color: inherit;
 }
 
 header h1 {
@@ -39,10 +45,14 @@ header h1 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: var(--primary-azure);
+    color: var(--primary-blue);
 }
 
 #user-info {
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     align-items: center;
     gap: 20px;
@@ -52,8 +62,8 @@ header h1 {
 
 .nav-btn {
     background-color: transparent;
-    border: 2px solid var(--primary-azure);
-    color: var(--primary-azure);
+    border: 2px solid var(--primary-blue);
+    color: var(--primary-blue);
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
@@ -62,23 +72,13 @@ header h1 {
 }
 
 .nav-btn:hover {
-    background-color: var(--primary-azure);
-    color: var(--bg-dark);
-}
-
-#logout-btn {
-    border-color: var(--secondary-ochre);
-    color: var(--secondary-ochre);
-}
-
-#logout-btn:hover {
-    background-color: var(--secondary-ochre);
-    color: white;
+    background-color: var(--primary-blue);
+    color: var(--card-bg);
 }
 
 .balance-pill {
-    background-color: var(--tertiary-lime);
-    color: var(--bg-dark);
+    background-color: var(--feedback-positive);
+    color: var(--card-bg);
     padding: 8px 12px;
     border-radius: 20px;
     font-weight: bold;
@@ -93,7 +93,7 @@ main {
 }
 
 h2 {
-    color: var(--primary-azure);
+    color: var(--primary-blue);
     border-bottom: 2px solid var(--border-color);
     padding-bottom: 10px;
     margin-top: 0;
@@ -107,14 +107,14 @@ h2 {
     background-color: var(--card-bg);
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
     margin-bottom: 40px;
     border: 1px solid var(--border-color);
 }
 
 .event-card, .user-card {
-    background-color: #2c3e50;
-    border-left: 5px solid var(--secondary-ochre);
+    background-color: var(--bg-light);
+    border-left: 5px solid var(--primary-blue);
     padding: 25px;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -127,7 +127,7 @@ h2 {
 }
 
 .event-card h3, .user-card h4 {
-    color: var(--primary-azure);
+    color: var(--text-dark);
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.6em;
@@ -144,7 +144,7 @@ h2 {
     display: flex;
     flex-direction: column;
     padding: 15px;
-    background-color: #3f556b;
+    background-color: var(--border-color);
     border-radius: 8px;
     position: relative;
     overflow: hidden;
@@ -153,13 +153,13 @@ h2 {
 .option-label {
     font-weight: bold;
     font-size: 1.1em;
-    color: var(--text-light);
+    color: var(--text-dark);
 }
 
 .option-cote {
     font-style: italic;
     font-size: 0.9em;
-    color: #95a5a6;
+    color: var(--secondary-gray);
     margin-top: 5px;
 }
 
@@ -172,33 +172,33 @@ h2 {
 .bet-form input {
     flex-grow: 1;
     border: none;
-    background-color: var(--bg-dark);
-    color: var(--text-light);
+    background-color: var(--card-bg);
+    color: var(--text-dark);
     padding: 10px;
     border-radius: 5px;
 }
 
 .bet-btn {
-    background-color: var(--primary-azure);
+    background-color: var(--primary-blue);
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
-    color: white;
+    color: var(--card-bg);
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .bet-btn:hover {
-    background-color: var(--tertiary-lime);
+    background-color: var(--feedback-positive);
 }
 
 .action-btn {
-    background-color: var(--primary-azure);
+    background-color: var(--primary-blue);
     border: none;
     padding: 15px 25px;
     border-radius: 8px;
-    color: white;
+    color: var(--card-bg);
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -206,7 +206,7 @@ h2 {
 }
 
 .action-btn:hover {
-    background-color: var(--secondary-ochre);
+    background-color: var(--feedback-negative);
 }
 
 .bet-form, .admin-form {
@@ -223,17 +223,17 @@ input[type="text"], input[type="password"], input[type="number"] {
     width: 100%;
     box-sizing: border-box;
     background-color: var(--card-bg);
-    color: var(--text-light);
+    color: var(--text-dark);
     transition: border-color 0.3s ease;
 }
 
 input::placeholder {
-    color: #7f8c8d;
+    color: var(--secondary-gray);
 }
 
 input:focus {
     outline: none;
-    border-color: var(--primary-azure);
+    border-color: var(--primary-blue);
 }
 
 .message {
@@ -244,13 +244,13 @@ input:focus {
 }
 
 .success {
-    background-color: var(--tertiary-lime);
-    color: var(--bg-dark);
+    background-color: var(--feedback-positive);
+    color: var(--card-bg);
 }
 
 .error {
-    background-color: var(--secondary-ochre);
-    color: white;
+    background-color: var(--feedback-negative);
+    color: var(--card-bg);
 }
 
 .hidden {
@@ -264,12 +264,19 @@ input:focus {
 }
 
 .account-details strong {
-    color: var(--primary-azure);
+    color: var(--primary-blue);
 }
 
 hr {
     border-color: var(--border-color);
     margin: 25px 0;
+}
+
+.logout-btn {
+    background-color: var(--feedback-negative);
+}
+.logout-btn:hover {
+    background-color: var(--text-dark);
 }
 
 /* --- Styles spécifiques à l'Admin --- */
@@ -281,8 +288,8 @@ hr {
 }
 
 .admin-badge {
-    background-color: var(--tertiary-lime);
-    color: var(--bg-dark);
+    background-color: var(--feedback-positive);
+    color: var(--card-bg);
     padding: 5px 10px;
     border-radius: 5px;
     font-weight: bold;
@@ -296,7 +303,7 @@ hr {
 }
 
 .close-option-btn {
-    background-color: var(--secondary-ochre);
+    background-color: var(--primary-blue);
     color: white;
 }
 
@@ -308,14 +315,14 @@ hr {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    background-color: var(--red-alert);
+    background-color: var(--feedback-negative);
     color: white;
     font-weight: bold;
     transition: opacity 0.3s ease;
 }
 
 .block-btn.blocked {
-    background-color: var(--tertiary-lime);
+    background-color: var(--feedback-positive);
 }
 
 /* --- Layout de la page principale --- */
@@ -335,7 +342,7 @@ hr {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(5px);
     z-index: 10;
     display: flex;
@@ -347,27 +354,27 @@ hr {
 
 #blocked-overlay p {
     font-size: 1.5em;
-    color: var(--red-alert);
+    color: var(--feedback-negative);
     font-weight: bold;
     padding: 20px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .leaderboard-container {
     width: 300px;
-    background-color: #2c3e50;
+    background-color: var(--card-bg);
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    border-left: 5px solid var(--tertiary-lime);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid var(--feedback-positive);
     flex-shrink: 0;
 }
 
 .leaderboard-container h3 {
     margin-top: 0;
-    color: var(--tertiary-lime);
+    color: var(--feedback-positive);
     text-align: center;
     font-size: 1.5em;
 }
@@ -394,6 +401,37 @@ hr {
 }
 
 #leaderboard-list li span:last-child {
-    color: var(--secondary-ochre);
+    color: var(--primary-blue);
+    font-weight: bold;
+}
+
+/* --- Styles pour l'historique des paris (Admin) --- */
+.bet-history-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.bet-history-list li {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bet-history-list li.winner {
+    background-color: rgba(0, 200, 83, 0.1);
+}
+
+.bet-history-list li.loser {
+    background-color: rgba(255, 61, 0, 0.1);
+}
+
+.bet-history-list li:last-child {
+    border-bottom: none;
+}
+
+.result {
     font-weight: bold;
 }

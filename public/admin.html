@@ -11,21 +11,19 @@
 </head>
 <body>
     <header>
-        <h1>Elite Bet</h1>
-        <div id="user-info" class="hidden">
-            <span id="username-display"></span>
-            <span id="balance-display" class="balance-pill">-- Jetons</span>
-            <button id="home-btn" class="nav-btn">Accueil</button>
-            <button id="account-btn" class="nav-btn">Mon Compte</button>
-            <button id="admin-btn" class="nav-btn hidden">Admin</button>
-            <button id="logout-btn" class="nav-btn">Déconnexion</button>
-        </div>
+        <a href="#" id="home-btn" class="home-link">
+            <h1>Elite Bet</h1>
+        </a>
     </header>
 
     <main>
         <section id="admin-section" class="section-container hidden">
             <h2>Panneau d'administration</h2>
             <div class="admin-panel">
+                <p id="admin-message" class="message"></p>
+
+                <hr>
+
                 <h3>Créer un nouvel événement</h3>
                 <form id="create-event-form" class="admin-form">
                     <input type="text" id="event-title" placeholder="Titre de l'événement" required>
@@ -40,7 +38,6 @@
                     <button type="button" id="add-option-btn" class="action-btn">Ajouter une option</button>
                     <button type="submit" class="action-btn">Créer l'événement</button>
                 </form>
-                <p id="admin-message" class="message"></p>
                 
                 <hr>
                 
@@ -49,8 +46,17 @@
                 
                 <hr>
                 
-                <h3>Historique des utilisateurs</h3>
-                <div id="user-history-list"></div>
+                <h3>Liste des utilisateurs</h3>
+                <div id="user-list-admin"></div>
+
+                <hr>
+
+                <h3>Historique des paris</h3>
+                <button id="toggle-history-btn" class="action-btn">Voir l'historique des paris</button>
+                <div id="admin-history-section" class="hidden">
+                    <div id="admin-events-history-list"></div>
+                </div>
+
             </div>
         </section>
     </main>
