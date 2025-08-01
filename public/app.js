@@ -64,7 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
             userInfo.classList.remove('hidden');
             if (accountBtn) accountBtn.classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
-            document.getElementById('balance-display').textContent = `${user.balance} Jetons`;
+            document.getElementById('balance-display').textContent = `${user.balance} Yoyo`;
+            console.log(`Mise à jour du solde affiché : ${user.balance} Yoyo`);
 
             if (user.isAdmin) {
                 if (adminBtn) adminBtn.classList.remove('hidden');
@@ -297,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             leaderboard.forEach((player, index) => {
                 const rank = index + 1;
                 const li = document.createElement('li');
-                li.innerHTML = `<span>${rank}. ${player.username}</span><span>${player.balance} Jetons</span>`;
+                li.innerHTML = `<span>${rank}. ${player.username}</span><span>${player.balance} Yoyo</span>`;
                 leaderboardList.appendChild(li);
             });
         } catch (error) {
@@ -364,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
             betCard.innerHTML = `
                 <h3>${event.title}</h3>
                 <p>Votre pari : <strong class="user-bet-label">${betOption.label}</strong></p>
-                <p>Montant : <strong>${userBet.amount}</strong> Jetons</p>
+                <p>Montant : <strong>${userBet.amount}</strong> Yoyo</p>
             `;
             betsList.appendChild(betCard);
         });
@@ -470,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userCard.innerHTML = `
                 <div class="user-info-admin">
                     <h4>${u.username} <span class="admin-badge">${u.isAdmin ? 'Admin' : 'Utilisateur'}</span></h4>
-                    <p>Solde actuel : ${u.balance} Jetons</p>
+                    <p>Solde actuel : ${u.balance} Yoyo</p>
                 </div>
                 ${u.isAdmin ? '' : `<button class="block-btn ${u.isBlocked ? 'blocked' : ''}" data-username="${u.username}">
                     ${u.isBlocked ? 'Débloquer' : 'Bloquer'}
@@ -494,13 +495,13 @@ document.addEventListener('DOMContentLoaded', () => {
             eventCard.className = 'event-card';
             eventCard.innerHTML = `
                 <h3>${event.title}</h3>
-                <p>Option gagnante : <strong>${event.options[event.winningOptionIndex].label}</strong></p>
+                <p>Option gagnante : <strong>${event.options[event.winningOptionIndex].label}</strong> (Cote: ${event.options[event.winningOptionIndex].cote.toFixed(2)})</p>
                 <h4>Participants :</h4>
                 <ul class="bet-history-list">
                     ${event.options.map(option =>
                         option.bets.map(bet => `
                             <li class="${bet.isWinner ? 'winner' : 'loser'}">
-                                <span>${bet.username}</span> a parié <strong>${bet.betAmount}</strong> sur "${bet.betOption}"
+                                <span>${bet.username}</span> a parié <strong>${bet.betAmount} Yoyo</strong> sur "${bet.betOption}" (Cote: ${bet.betCote.toFixed(2)})
                                 <span class="result">${bet.isWinner ? `Gains: +${bet.winnings}` : `Perte: ${bet.winnings}`}</span>
                             </li>
                         `).join('')
@@ -555,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         adminEventsList.addEventListener('click', async (e) => {
             if (e.target.classList.contains('close-option-btn')) {
                 const eventId = parseInt(e.target.dataset.eventId);
-                const winningOptionIndex = parseInt(e.target.dataset.optionIndex);
+                const winningOptionIndex = parseInt(e.target.dataset.option-index);
                 
                 try {
                     const response = await fetch('/api/admin/close-event', {
@@ -587,34 +588,4 @@ document.addEventListener('DOMContentLoaded', () => {
                     showMessage(document.getElementById('admin-message'), result.message, 'success');
                     fetchAdminData(); // Refresh the list
                 } catch (error) {
-                    showMessage(document.getElementById('admin-message'), 'Erreur lors du blocage du compte.', 'error');
-                }
-            }
-        });
-    }
-    
-    if (toggleHistoryBtn) {
-        toggleHistoryBtn.addEventListener('click', () => {
-            if (adminHistorySection.classList.contains('hidden')) {
-                adminHistorySection.classList.remove('hidden');
-                toggleHistoryBtn.textContent = 'Masquer l\'historique';
-                fetchAdminHistory();
-            } else {
-                adminHistorySection.classList.add('hidden');
-                toggleHistoryBtn.textContent = 'Voir l\'historique des paris';
-            }
-        });
-    }
-
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-        try {
-            user = JSON.parse(storedUser);
-        } catch (e) {
-            console.error("Erreur de parsing de l'utilisateur stocké :", e);
-            localStorage.removeItem('user'); // Nettoyer les données corrompues
-        }
-    }
-    window.addEventListener('hashchange', updateUI);
-    updateUI();
-});
+                    showMessage(document.getElementById('admin-message'), 'Er

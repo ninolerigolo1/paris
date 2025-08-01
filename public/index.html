@@ -16,7 +16,7 @@
         </a>
         <div id="user-info" class="hidden">
             <span id="username-display"></span>
-            <span id="balance-display" class="balance-pill">-- Jetons</span>
+            <span id="balance-display" class="balance-pill">-- Yoyo</span>
             <button id="account-btn" class="nav-btn">Mon Compte</button>
             <button id="admin-btn" class="nav-btn hidden">Admin</button>
         </div>
@@ -51,6 +51,10 @@
         </section>
 
         <section id="app-section" class="section-container hidden">
+            <div id="leaderboard-container" class="leaderboard-container">
+                <h3>🏆 Classement 🏆</h3>
+                <ul id="leaderboard-list"></ul>
+            </div>
             <div id="app-content-wrapper">
                 <div id="betting-section">
                     <h2>Événements ouverts</h2>
@@ -61,23 +65,18 @@
                     <p id="app-message" class="message"></p>
                 </div>
                 
-                <div id="leaderboard-container" class="leaderboard-container">
-                    <h3>🏆 Classement 🏆</h3>
-                    <ul id="leaderboard-list"></ul>
+                <div id="my-bets-section" class="section-container hidden">
+                    <h2>Mes paris</h2>
+                    <div id="bets-list"></div>
                 </div>
             </div>
-        </section>
-
-        <section id="my-bets-section" class="section-container hidden">
-            <h2>Mes paris</h2>
-            <div id="bets-list"></div>
         </section>
 
         <section id="account-section" class="section-container hidden">
             <h2>Mon Compte</h2>
             <div class="account-details">
                 <p>Nom d'utilisateur : <strong id="account-username"></strong></p>
-                <p>Solde : <strong id="account-balance"></strong> Jetons</p>
+                <p>Solde : <strong id="account-balance"></strong> Yoyo</p>
             </div>
             
             <hr>
