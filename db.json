@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "nino",
+      "password": "test",
+      "balance": 1000,
+      "isAdmin": true,
+      "bets": []
+    }
+  ],
+  "events": [],
+  "nextEventId": 1
+}

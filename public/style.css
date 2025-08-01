@@ -9,6 +9,7 @@
     --bg-dark: #1c2833;           /* Fond principal sombre */
     --card-bg: #212f3d;           /* Fond des cartes et modules */
     --border-color: #34495e;      /* Bordures */
+    --red-alert: #e74c3c;         /* Rouge pour les alertes/erreurs */
 }
 
 /* --- Styles Généraux --- */
@@ -118,6 +119,7 @@ h2 {
     border-radius: 10px;
     margin-bottom: 20px;
     transition: transform 0.2s ease-in-out;
+    position: relative;
 }
 
 .event-card:hover, .user-card:hover {
@@ -296,4 +298,77 @@ hr {
 .close-option-btn {
     background-color: var(--secondary-ochre);
     color: white;
+}
+
+.block-btn {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: var(--red-alert);
+    color: white;
+    font-weight: bold;
+    transition: opacity 0.3s ease;
+}
+
+.block-btn.blocked {
+    background-color: var(--tertiary-lime);
+}
+
+/* --- Leaderboard --- */
+#app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+#app-header h2 {
+    flex-grow: 1;
+}
+
+.leaderboard-container {
+    width: 300px;
+    background-color: #2c3e50;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-left: 5px solid var(--tertiary-lime);
+}
+
+.leaderboard-container h3 {
+    margin-top: 0;
+    color: var(--tertiary-lime);
+    text-align: center;
+    font-size: 1.5em;
+}
+
+#leaderboard-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#leaderboard-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#leaderboard-list li:last-child {
+    border-bottom: none;
+}
+
+#leaderboard-list li span:first-child {
+    font-weight: 600;
+}
+
+#leaderboard-list li span:last-child {
+    color: var(--secondary-ochre);
+    font-weight: bold;
 }

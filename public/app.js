@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const authMessage = document.getElementById('auth-message');
     const signupMessage = document.getElementById('signup-message');
     const appMessage = document.getElementById('app-message');
+    const leaderboardList = document.getElementById('leaderboard-list');
 
     // Boutons de navigation
     const loginBtn = document.getElementById('login-btn');
@@ -28,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const promoteMessage = document.getElementById('promote-message');
     const promoteAdminContainer = document.getElementById('promote-admin-container');
     const adminEventsList = document.getElementById('admin-events-list');
+    const userHistoryList = document.getElementById('user-history-list');
 
     let user = null;
     let allEvents = [];
@@ -51,6 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (adminSection) adminSection.classList.add('hidden');
         if (userInfo) userInfo.classList.add('hidden');
         if (promoteAdminContainer) promoteAdminContainer.classList.add('hidden');
+        if (leaderboardList) leaderboardList.innerHTML = '';
+
 
         if (user) {
             userInfo.classList.remove('hidden');
@@ -81,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 appSection.classList.remove('hidden');
                 myBetsSection.classList.remove('hidden');
                 fetchEvents();
+                fetchLeaderboard();
             }
         } else {
             if (path.includes('/admin.html')) {
@@ -195,9 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (homeBtn) {
         homeBtn.addEventListener('click', () => {
-            // Re-render the UI to the main page without a full reload
             if (window.location.pathname === '/') {
-                window.location.hash = ''; // Clear hash to show main content
+                window.location.hash = '';
                 updateUI();
             } else {
                 window.location.href = '/';
@@ -272,6 +276,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const fetchLeaderboard = async () => {
+        if (!leaderboardList) return;
+        try {
+            const response = await fetch('/api/leaderboard');
+            const leaderboard = await response.json();
+            leaderboardList.innerHTML = '';
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<li>Pas de joueurs enregistrés.</li>';
+                return;
+            }
+            leaderboard.forEach((player, index) => {
+                const rank = index + 1;
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${rank}. ${player.username}</span><span>${player.balance.toFixed(2)} Jetons</span>`;
+                leaderboardList.appendChild(li);
+            });
+        } catch (error) {
+            console.error('Erreur lors de la récupération du classement:', error);
+            leaderboardList.innerHTML = '<li>Erreur de chargement du classement.</li>';
+        }
+    };
+
     const fetchEvents = async () => {
         try {
             const response = await fetch('/api/events');
@@ -288,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         eventsList.innerHTML = '';
         betsList.innerHTML = '';
         const userBets = user.bets || [];
-        const activeEvents = events.filter(event => !userBets.some(bet => bet.eventId === event.id));
+        const activeEvents = events.filter(event => !event.isClosed && !userBets.some(bet => bet.eventId === event.id));
         const userBetEvents = events.filter(event => userBets.some(bet => bet.eventId === event.id));
         
         activeEvents.forEach(event => {
@@ -362,8 +388,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const fetchAdminData = async () => {
-        const userHistoryList = document.getElementById('user-history-list');
-
         if (!user || !user.isAdmin) {
             window.location.href = '/';
             return;
@@ -384,7 +408,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const displayAdminEvents = (events) => {
-        const adminEventsList = document.getElementById('admin-events-list');
         if (!adminEventsList) return;
 
         adminEventsList.innerHTML = '';
@@ -400,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>${event.title}</h3>
                 <div class="options">
                     ${event.options.map((option, index) => `
-                        <button class="close-option-btn" data-event-id="${event.id}" data-option-index="${index}">Clôturer sur "${option.label}" (Cote: ${option.cote})</button>
+                        <button class="close-option-btn" data-event-id="${event.id}" data-option-index="${index}">Clôturer sur "${option.label}" (Cote: ${option.cote ? option.cote.toFixed(2) : '??'})</button>
                     `).join('')}
                 </div>
             `;
@@ -409,7 +432,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const displayUserHistory = (history) => {
-        const userHistoryList = document.getElementById('user-history-list');
         if (!userHistoryList) return;
         
         userHistoryList.innerHTML = '';
@@ -417,8 +439,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const userCard = document.createElement('div');
             userCard.className = 'user-card';
             userCard.innerHTML = `
-                <h4>${u.username} <span class="admin-badge">${u.isAdmin ? 'Admin' : 'Utilisateur'}</span></h4>
-                <p>Solde actuel : ${u.balance.toFixed(2)} Jetons</p>
+                <div class="user-info-admin">
+                    <h4>${u.username} <span class="admin-badge">${u.isAdmin ? 'Admin' : 'Utilisateur'}</span></h4>
+                    <p>Solde actuel : ${u.balance.toFixed(2)} Jetons</p>
+                </div>
+                ${u.isAdmin ? '' : `<button class="block-btn ${u.isBlocked ? 'blocked' : ''}" data-username="${u.username}">
+                    ${u.isBlocked ? 'Débloquer' : 'Bloquer'}
+                </button>`}
             `;
             userHistoryList.appendChild(userCard);
         });
@@ -431,8 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = document.getElementById('event-title').value;
             const options = Array.from(document.querySelectorAll('.option-group')).map(group => {
                 return {
-                    label: group.querySelector('.option-label').value,
-                    cote: parseFloat(group.querySelector('.option-cote').value)
+                    label: group.querySelector('.option-label').value
                 };
             });
             
@@ -456,12 +482,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addOptionBtn) {
         addOptionBtn.addEventListener('click', () => {
             const optionsContainer = document.getElementById('options-container');
-            const optionIndex = optionsContainer.children.length + 1;
             const newOptionGroup = document.createElement('div');
             newOptionGroup.className = 'option-group';
             newOptionGroup.innerHTML = `
-                <input type="text" class="option-label" placeholder="Libellé option ${optionIndex}" required>
-                <input type="number" class="option-cote" placeholder="Cote ${optionIndex}" step="0.01" required>
+                <input type="text" class="option-label" placeholder="Libellé option" required>
             `;
             optionsContainer.appendChild(newOptionGroup);
         });
@@ -471,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         adminEventsList.addEventListener('click', async (e) => {
             if (e.target.classList.contains('close-option-btn')) {
                 const eventId = parseInt(e.target.dataset.eventId);
-                const winningOptionIndex = parseInt(e.target.dataset.optionIndex);
+                const winningOptionIndex = parseInt(e.target.dataset.option-index);
                 
                 try {
                     const response = await fetch('/api/admin/close-event', {
@@ -484,6 +508,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     fetchAdminData();
                 } catch (error) {
                     showMessage(document.getElementById('admin-message'), 'Erreur lors de la clôture de l\'événement.', 'error');
+                }
+            }
+        });
+    }
+    
+    if (userHistoryList) {
+        userHistoryList.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('block-btn')) {
+                const username = e.target.dataset.username;
+                try {
+                    const response = await fetch('/api/admin/block-user', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username })
+                    });
+                    const result = await response.json();
+                    showMessage(document.getElementById('admin-message'), result.message, 'success');
+                    fetchAdminData(); // Refresh the list
+                } catch (error) {
+                    showMessage(document.getElementById('admin-message'), 'Erreur lors du blocage du compte.', 'error');
                 }
             }
         });
