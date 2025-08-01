@@ -1,22 +1,24 @@
 /* Fichier : public/style.css */
 
-/* --- Nouvelle palette de couleurs --- */
+/* --- Palette de couleurs d'origine --- */
 :root {
-    --primary-blue: #2962FF;       /* Bleu électrique */
-    --bg-light: #F0F2F5;           /* Fond global (gris très clair) */
-    --text-dark: #263238;          /* Texte (gris foncé) */
-    --feedback-positive: #00C853;  /* Vert menthe */
-    --feedback-negative: #FF3D00;  /* Rouge/Orange pour les erreurs */
-    --card-bg: #FFFFFF;            /* Fond des cartes (blanc) */
-    --border-color: #E0E0E0;       /* Bordures */
-    --secondary-gray: #B0BEC5;     /* Gris pour les textes secondaires */
+    --primary-blue: #007BFF;
+    --secondary-blue: #0056b3;
+    --bg-dark: #1E1E1E;
+    --card-bg: #2C2C2C;
+    --text-light: #EAEAEA;
+    --text-dark: #FFFFFF;
+    --border-color: #444444;
+    --feedback-positive: #28a745;
+    --feedback-negative: #dc3545;
+    --primary-azure: #2962FF;       /* Utilisé pour les accents, comme demandé */
 }
 
 /* --- Styles Généraux --- */
 body {
     font-family: 'Montserrat', sans-serif;
-    background-color: var(--bg-light);
-    color: var(--text-dark);
+    background-color: var(--bg-dark);
+    color: var(--text-light);
     margin: 0;
     line-height: 1.6;
     display: flex;
@@ -30,7 +32,7 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     position: relative;
 }
 
@@ -45,7 +47,7 @@ header h1 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: var(--primary-blue);
+    color: var(--primary-azure);
 }
 
 #user-info {
@@ -62,8 +64,8 @@ header h1 {
 
 .nav-btn {
     background-color: transparent;
-    border: 2px solid var(--primary-blue);
-    color: var(--primary-blue);
+    border: 2px solid var(--primary-azure);
+    color: var(--primary-azure);
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
@@ -72,13 +74,13 @@ header h1 {
 }
 
 .nav-btn:hover {
-    background-color: var(--primary-blue);
-    color: var(--card-bg);
+    background-color: var(--primary-azure);
+    color: var(--text-dark);
 }
 
 .balance-pill {
     background-color: var(--feedback-positive);
-    color: var(--card-bg);
+    color: var(--text-dark);
     padding: 8px 12px;
     border-radius: 20px;
     font-weight: bold;
@@ -93,7 +95,7 @@ main {
 }
 
 h2 {
-    color: var(--primary-blue);
+    color: var(--primary-azure);
     border-bottom: 2px solid var(--border-color);
     padding-bottom: 10px;
     margin-top: 0;
@@ -107,14 +109,14 @@ h2 {
     background-color: var(--card-bg);
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
     margin-bottom: 40px;
     border: 1px solid var(--border-color);
 }
 
 .event-card, .user-card {
-    background-color: var(--bg-light);
-    border-left: 5px solid var(--primary-blue);
+    background-color: var(--border-color);
+    border-left: 5px solid var(--primary-azure);
     padding: 25px;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -127,7 +129,7 @@ h2 {
 }
 
 .event-card h3, .user-card h4 {
-    color: var(--text-dark);
+    color: var(--text-light);
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.6em;
@@ -144,7 +146,7 @@ h2 {
     display: flex;
     flex-direction: column;
     padding: 15px;
-    background-color: var(--border-color);
+    background-color: var(--card-bg);
     border-radius: 8px;
     position: relative;
     overflow: hidden;
@@ -153,13 +155,14 @@ h2 {
 .option-label {
     font-weight: bold;
     font-size: 1.1em;
-    color: var(--text-dark);
+    color: var(--text-light);
 }
 
 .option-cote {
     font-style: italic;
     font-size: 0.9em;
-    color: var(--secondary-gray);
+    color: var(--text-light);
+    opacity: 0.7;
     margin-top: 5px;
 }
 
@@ -172,33 +175,33 @@ h2 {
 .bet-form input {
     flex-grow: 1;
     border: none;
-    background-color: var(--card-bg);
-    color: var(--text-dark);
+    background-color: var(--bg-dark);
+    color: var(--text-light);
     padding: 10px;
     border-radius: 5px;
 }
 
 .bet-btn {
-    background-color: var(--primary-blue);
+    background-color: var(--primary-azure);
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
-    color: var(--card-bg);
+    color: var(--text-light);
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .bet-btn:hover {
-    background-color: var(--feedback-positive);
+    background-color: var(--secondary-blue);
 }
 
 .action-btn {
-    background-color: var(--primary-blue);
+    background-color: var(--primary-azure);
     border: none;
     padding: 15px 25px;
     border-radius: 8px;
-    color: var(--card-bg);
+    color: var(--text-light);
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -206,7 +209,7 @@ h2 {
 }
 
 .action-btn:hover {
-    background-color: var(--feedback-negative);
+    background-color: var(--secondary-blue);
 }
 
 .bet-form, .admin-form {
@@ -222,18 +225,19 @@ input[type="text"], input[type="password"], input[type="number"] {
     font-size: 1em;
     width: 100%;
     box-sizing: border-box;
-    background-color: var(--card-bg);
-    color: var(--text-dark);
+    background-color: var(--bg-dark);
+    color: var(--text-light);
     transition: border-color 0.3s ease;
 }
 
 input::placeholder {
-    color: var(--secondary-gray);
+    color: var(--text-light);
+    opacity: 0.5;
 }
 
 input:focus {
     outline: none;
-    border-color: var(--primary-blue);
+    border-color: var(--primary-azure);
 }
 
 .message {
@@ -245,12 +249,12 @@ input:focus {
 
 .success {
     background-color: var(--feedback-positive);
-    color: var(--card-bg);
+    color: var(--text-light);
 }
 
 .error {
     background-color: var(--feedback-negative);
-    color: var(--card-bg);
+    color: var(--text-light);
 }
 
 .hidden {
@@ -264,7 +268,7 @@ input:focus {
 }
 
 .account-details strong {
-    color: var(--primary-blue);
+    color: var(--primary-azure);
 }
 
 hr {
@@ -276,7 +280,7 @@ hr {
     background-color: var(--feedback-negative);
 }
 .logout-btn:hover {
-    background-color: var(--text-dark);
+    background-color: #b72b38;
 }
 
 /* --- Styles spécifiques à l'Admin --- */
@@ -288,8 +292,8 @@ hr {
 }
 
 .admin-badge {
-    background-color: var(--feedback-positive);
-    color: var(--card-bg);
+    background-color: var(--primary-azure);
+    color: var(--text-light);
     padding: 5px 10px;
     border-radius: 5px;
     font-weight: bold;
@@ -303,7 +307,7 @@ hr {
 }
 
 .close-option-btn {
-    background-color: var(--primary-blue);
+    background-color: var(--primary-azure);
     color: white;
 }
 
@@ -342,7 +346,7 @@ hr {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(30, 30, 30, 0.7);
     backdrop-filter: blur(5px);
     z-index: 10;
     display: flex;
@@ -357,7 +361,7 @@ hr {
     color: var(--feedback-negative);
     font-weight: bold;
     padding: 20px;
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.5);
     border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
@@ -401,7 +405,7 @@ hr {
 }
 
 #leaderboard-list li span:last-child {
-    color: var(--primary-blue);
+    color: var(--primary-azure);
     font-weight: bold;
 }
 
@@ -421,11 +425,11 @@ hr {
 }
 
 .bet-history-list li.winner {
-    background-color: rgba(0, 200, 83, 0.1);
+    background-color: rgba(40, 167, 69, 0.2);
 }
 
 .bet-history-list li.loser {
-    background-color: rgba(255, 61, 0, 0.1);
+    background-color: rgba(220, 53, 69, 0.2);
 }
 
 .bet-history-list li:last-child {
@@ -434,4 +438,80 @@ hr {
 
 .result {
     font-weight: bold;
+}
+
+/* --- Styles pour la version mobile --- */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+    }
+
+    header {
+        flex-direction: column;
+        padding: 15px 20px;
+        text-align: center;
+    }
+
+    header h1 {
+        font-size: 1.8em;
+        margin-bottom: 10px;
+    }
+
+    #user-info {
+        position: static;
+        transform: none;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    #user-info .nav-btn {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+
+    main {
+        padding: 20px;
+    }
+
+    #app-content-wrapper {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .section-container {
+        padding: 20px;
+    }
+    
+    .options-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .bet-form {
+        flex-direction: column;
+    }
+    
+    .bet-form input {
+        width: 100%;
+    }
+
+    .leaderboard-container {
+        width: 100%;
+        order: 1; /* Place le classement en haut sur mobile */
+    }
+
+    #betting-section {
+        order: 2;
+    }
+    
+    .user-card .block-btn {
+        position: static;
+        margin-top: 15px;
+        width: 100%;
+    }
+    
+    .admin-form .buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
 }
