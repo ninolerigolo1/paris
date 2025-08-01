@@ -19,14 +19,14 @@ const loadData = () => {
     if (fs.existsSync(DB_FILE)) {
         try {
             const data = fs.readFileSync(DB_FILE);
-            console.log('Données chargées depuis db.json');
+            console.log('Données chargées depuis db.json.');
             return JSON.parse(data);
         } catch (error) {
             console.error('Erreur lors de la lecture de db.json:', error);
             return { users: [], events: [], nextEventId: 1 };
         }
     }
-    console.log('Création d\'un nouveau fichier db.json');
+    console.log('Fichier db.json non trouvé, création d\'un nouveau fichier.');
     return { users: [], events: [], nextEventId: 1 };
 };
 
@@ -34,7 +34,7 @@ const loadData = () => {
 const saveData = (data) => {
     try {
         fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-        console.log('Données sauvegardées dans db.json');
+        console.log('Données sauvegardées dans db.json.');
     } catch (error) {
         console.error('Erreur lors de l\'écriture dans db.json:', error);
     }
@@ -49,7 +49,7 @@ const findUser = (username) => db.users.find(u => u.username === username);
 const calculateOdds = (event) => {
     const totalAmount = event.options.reduce((sum, option) => sum + (option.totalBets || 0), 0);
     event.options.forEach(option => {
-        if (totalAmount > 0) {
+        if (totalAmount > 0 && (option.totalBets || 0) > 0) {
             const probability = (option.totalBets || 0) / totalAmount;
             // Add a small margin to make it more realistic
             option.cote = (1 / probability) * 0.95; 
@@ -73,7 +73,7 @@ app.post('/api/signup', (req, res) => {
         password, // In a real app, hash this password!
         balance: 1000,
         isAdmin: false,
-        isBlocked: false, // New property
+        isBlocked: false,
         bets: []
     };
     db.users.push(newUser);
@@ -85,23 +85,18 @@ app.post('/api/signup', (req, res) => {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     const user = findUser(username);
-    if (!user) {
+    if (!user || user.password !== password) {
         return res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
     }
-    if (user.isBlocked) {
-        return res.status(403).json({ error: 'Votre compte a été bloqué par un administrateur.' });
-    }
-    if (user.password === password) {
-        // Return a simplified user object for the client
-        const userForClient = {
-            username: user.username,
-            balance: user.balance,
-            isAdmin: user.isAdmin,
-            bets: user.bets,
-        };
-        return res.json({ message: 'Connexion réussie !', user: userForClient });
-    }
-    res.status(401).json({ error: 'Nom d\'utilisateur ou mot de passe incorrect.' });
+    // Return a simplified user object for the client, including the blocked status
+    const userForClient = {
+        username: user.username,
+        balance: user.balance,
+        isAdmin: user.isAdmin,
+        isBlocked: user.isBlocked,
+        bets: user.bets,
+    };
+    return res.json({ message: 'Connexion réussie !', user: userForClient });
 });
 
 // Promote to Admin
@@ -118,6 +113,7 @@ app.post('/api/promote-to-admin', (req, res) => {
             username: user.username,
             balance: user.balance,
             isAdmin: user.isAdmin,
+            isBlocked: user.isBlocked,
             bets: user.bets,
         };
         return res.json({ message: 'Promotion réussie ! Vous êtes maintenant administrateur.', user: userForClient });
@@ -142,10 +138,13 @@ app.post('/api/change-password', (req, res) => {
 
 // Get all events
 app.get('/api/events', (req, res) => {
-    // For open events, recalculate and send odds
-    const openEvents = db.events.filter(e => !e.isClosed);
-    openEvents.forEach(calculateOdds);
-    res.json(db.events);
+    const eventsWithCotes = db.events.map(event => {
+        if (!event.isClosed) {
+            calculateOdds(event);
+        }
+        return event;
+    });
+    res.json(eventsWithCotes);
 });
 
 // Place a bet
@@ -156,6 +155,9 @@ app.post('/api/bet', (req, res) => {
     
     if (!user || !event) {
         return res.status(404).json({ error: 'Utilisateur ou événement non trouvé.' });
+    }
+    if (user.isBlocked) {
+         return res.status(403).json({ error: 'Votre compte est bloqué, vous ne pouvez pas parier.' });
     }
     if (user.balance < betAmount) {
         return res.status(400).json({ error: 'Solde insuffisant.' });
@@ -171,15 +173,22 @@ app.post('/api/bet', (req, res) => {
     event.options[optionIndex].totalBets = (event.options[optionIndex].totalBets || 0) + betAmount;
     
     saveData(db);
-    res.json({ message: 'Pari enregistré.', balance: user.balance });
+    const userForClient = {
+        username: user.username,
+        balance: user.balance,
+        isAdmin: user.isAdmin,
+        isBlocked: user.isBlocked,
+        bets: user.bets,
+    };
+    res.json({ message: 'Pari enregistré.', user: userForClient });
 });
 
 // Get leaderboard
 app.get('/api/leaderboard', (req, res) => {
     const leaderboard = db.users
-        .filter(user => !user.isAdmin) // Admins not in leaderboard
+        .filter(user => !user.isAdmin)
         .sort((a, b) => b.balance - a.balance)
-        .slice(0, 3) // Get top 3
+        .slice(0, 3)
         .map(user => ({ username: user.username, balance: user.balance }));
     res.json(leaderboard);
 });
@@ -188,13 +197,13 @@ app.get('/api/leaderboard', (req, res) => {
 
 // Create a new event
 app.post('/api/admin/create-event', (req, res) => {
-    const { title, options } = req.body; // Options now only contain labels
+    const { title, options } = req.body;
     const newEvent = {
         id: db.nextEventId++,
         title,
         options: options.map(opt => ({
             label: opt.label,
-            cote: 1.05, // Default cote
+            cote: 1.05,
             totalBets: 0
         })),
         isClosed: false
@@ -213,15 +222,15 @@ app.post('/api/admin/close-event', (req, res) => {
     }
 
     event.isClosed = true;
-    const winningCote = event.options[winningOptionIndex].cote;
+    const winningOption = event.options[winningOptionIndex];
+    const winningCote = winningOption.cote;
 
     db.users.forEach(user => {
-        user.bets.forEach(bet => {
-            if (bet.eventId === eventId && bet.optionIndex === winningOptionIndex) {
-                const winnings = bet.amount * winningCote;
-                user.balance += winnings;
-            }
-        });
+        const userBet = user.bets.find(bet => bet.eventId === eventId && bet.optionIndex === winningOptionIndex);
+        if (userBet) {
+            const winnings = userBet.amount * winningCote;
+            user.balance += winnings;
+        }
     });
 
     // Remove bets for the closed event
@@ -243,9 +252,9 @@ app.post('/api/admin/block-user', (req, res) => {
     if (user.isAdmin) {
         return res.status(403).json({ error: 'Impossible de bloquer un autre administrateur.' });
     }
-    user.isBlocked = true;
+    user.isBlocked = !user.isBlocked; // Toggle block status
     saveData(db);
-    res.json({ message: `Le compte de ${username} a été bloqué.` });
+    res.json({ message: `Le compte de ${username} a été ${user.isBlocked ? 'bloqué' : 'débloqué'}.` });
 });
 
 // Get user history for admin
@@ -254,7 +263,7 @@ app.get('/api/admin/history', (req, res) => {
         username: u.username,
         balance: u.balance,
         isAdmin: u.isAdmin,
-        isBlocked: u.isBlocked // New property
+        isBlocked: u.isBlocked
     }));
     res.json(userHistory);
 });

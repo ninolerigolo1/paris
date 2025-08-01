@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupMessage = document.getElementById('signup-message');
     const appMessage = document.getElementById('app-message');
     const leaderboardList = document.getElementById('leaderboard-list');
+    const blockedOverlay = document.getElementById('blocked-overlay');
 
     // Boutons de navigation
     const loginBtn = document.getElementById('login-btn');
@@ -59,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             userInfo.classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
-            document.getElementById('balance-display').textContent = `${user.balance} Jetons`;
+            document.getElementById('balance-display').textContent = `${user.balance.toFixed(2)} Jetons`;
 
             if (user.isAdmin) {
                 adminBtn.classList.remove('hidden');
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (hash === '#account') {
                 accountSection.classList.remove('hidden');
                 document.getElementById('account-username').textContent = user.username;
-                document.getElementById('account-balance').textContent = user.balance;
+                document.getElementById('account-balance').textContent = user.balance.toFixed(2);
                 if (!user.isAdmin) {
                     if (promoteAdminContainer) promoteAdminContainer.classList.remove('hidden');
                 }
@@ -311,6 +312,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const displayEvents = (events) => {
         if (!eventsList || !betsList) return;
+        
+        // Show/hide blocked overlay
+        if (user && user.isBlocked) {
+            eventsList.classList.add('hidden');
+            blockedOverlay.classList.remove('hidden');
+        } else {
+            eventsList.classList.remove('hidden');
+            blockedOverlay.classList.add('hidden');
+        }
+
         eventsList.innerHTML = '';
         betsList.innerHTML = '';
         const userBets = user.bets || [];
@@ -371,9 +382,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     const result = await response.json();
                     if (response.ok) {
-                        user.balance = result.balance;
-                        if (!user.bets) user.bets = [];
-                        user.bets.push({ eventId, optionIndex, amount: parseFloat(betAmount) });
+                        // Mettre à jour l'utilisateur avec les données du serveur
+                        user = result.user;
                         localStorage.setItem('user', JSON.stringify(user));
                         showMessage(appMessage, result.message, 'success');
                         updateUI();
@@ -495,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
         adminEventsList.addEventListener('click', async (e) => {
             if (e.target.classList.contains('close-option-btn')) {
                 const eventId = parseInt(e.target.dataset.eventId);
-                const winningOptionIndex = parseInt(e.target.dataset.option-index);
+                const winningOptionIndex = parseInt(e.target.dataset.optionIndex);
                 
                 try {
                     const response = await fetch('/api/admin/close-event', {

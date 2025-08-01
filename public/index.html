@@ -51,16 +51,21 @@
         </section>
 
         <section id="app-section" class="section-container hidden">
-            <div id="app-header">
-                <h2>Événements ouverts</h2>
-                <div id="leaderboard-section" class="leaderboard-container">
+            <div id="app-content-wrapper">
+                <div id="betting-section">
+                    <h2>Événements ouverts</h2>
+                    <div id="blocked-overlay" class="hidden">
+                        <p>Utilisateur bloqué. Veuillez contacter un administrateur.</p>
+                    </div>
+                    <div id="events-list"></div>
+                    <p id="app-message" class="message"></p>
+                </div>
+                
+                <div id="leaderboard-container" class="leaderboard-container">
                     <h3>🏆 Classement 🏆</h3>
                     <ul id="leaderboard-list"></ul>
                 </div>
             </div>
-            
-            <div id="events-list"></div>
-            <p id="app-message" class="message"></p>
         </section>
 
         <section id="my-bets-section" class="section-container hidden">
