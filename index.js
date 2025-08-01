@@ -288,4 +288,11 @@ app.get('/api/admin/user-list', (req, res) => {
 
 // Get detailed event history for admin
 app.get('/api/admin/events-history', (req, res) => {
-    const closedEvents = db.events.filter(e =>
+    const closedEvents = db.events.filter(e => e.isClosed);
+    res.json(closedEvents);
+});
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Serveur démarré sur http://localhost:${PORT}`);
+});
