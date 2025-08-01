@@ -23,6 +23,7 @@ const loadData = () => {
             return JSON.parse(data);
         } catch (error) {
             console.error('Erreur lors de la lecture de db.json:', error);
+            // Si le fichier existe mais est corrompu, on initialise avec des données par défaut
             return { users: [], events: [], nextEventId: 1 };
         }
     }
@@ -34,7 +35,7 @@ const loadData = () => {
 const saveData = (data) => {
     try {
         fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-        console.log('Données sauvegardées dans db.json.');
+        console.log('Données sauvegardées avec succès dans db.json.');
     } catch (error) {
         console.error('Erreur lors de l\'écriture dans db.json:', error);
     }
@@ -77,7 +78,7 @@ app.post('/api/signup', (req, res) => {
         bets: []
     };
     db.users.push(newUser);
-    saveData(db);
+    saveData(db); // Sauvegarde après la création d'un compte
     res.json({ message: 'Compte créé avec succès.' });
 });
 
@@ -108,7 +109,7 @@ app.post('/api/promote-to-admin', (req, res) => {
     const user = findUser(username);
     if (user) {
         user.isAdmin = true;
-        saveData(db);
+        saveData(db); // Sauvegarde après la promotion
         const userForClient = {
             username: user.username,
             balance: user.balance,
@@ -132,7 +133,7 @@ app.post('/api/change-password', (req, res) => {
         return res.status(401).json({ error: 'Ancien mot de passe incorrect.' });
     }
     user.password = newPassword;
-    saveData(db);
+    saveData(db); // Sauvegarde après le changement de mot de passe
     res.json({ message: 'Mot de passe mis à jour avec succès.' });
 });
 
@@ -172,7 +173,7 @@ app.post('/api/bet', (req, res) => {
     // Update total bets for dynamic odds calculation
     event.options[optionIndex].totalBets = (event.options[optionIndex].totalBets || 0) + betAmount;
     
-    saveData(db);
+    saveData(db); // Sauvegarde après un pari
     const userForClient = {
         username: user.username,
         balance: user.balance,
@@ -210,7 +211,7 @@ app.post('/api/admin/create-event', (req, res) => {
         isClosed: false
     };
     db.events.push(newEvent);
-    saveData(db);
+    saveData(db); // Sauvegarde après la création d'un événement
     res.json({ message: 'Événement créé avec succès.', event: newEvent });
 });
 
@@ -254,7 +255,7 @@ app.post('/api/admin/close-event', (req, res) => {
         user.bets = user.bets.filter(bet => bet.eventId !== eventId);
     });
 
-    saveData(db);
+    saveData(db); // Sauvegarde après la clôture d'un événement
     res.json({ message: 'Événement clos et gains distribués.' });
 });
 
@@ -269,7 +270,7 @@ app.post('/api/admin/block-user', (req, res) => {
         return res.status(403).json({ error: 'Impossible de bloquer un autre administrateur.' });
     }
     user.isBlocked = !user.isBlocked; // Toggle block status
-    saveData(db);
+    saveData(db); // Sauvegarde après le blocage/déblocage d'un utilisateur
     res.json({ message: `Le compte de ${username} a été ${user.isBlocked ? 'bloqué' : 'débloqué'}.` });
 });
 

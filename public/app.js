@@ -49,49 +49,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const hash = window.location.hash;
 
         // Reset display
-        if (authSection) authSection.classList.add('hidden');
-        if (signupSection) signupSection.classList.add('hidden');
-        if (appSection) appSection.classList.add('hidden');
-        if (myBetsSection) myBetsSection.classList.add('hidden');
-        if (accountSection) accountSection.classList.add('hidden');
-        if (adminSection) adminSection.classList.add('hidden');
+        document.querySelectorAll('section').forEach(section => section.classList.add('hidden'));
         if (userInfo) userInfo.classList.add('hidden');
         if (promoteAdminContainer) promoteAdminContainer.classList.add('hidden');
         if (leaderboardList) leaderboardList.innerHTML = '';
         if (adminHistorySection) adminHistorySection.classList.add('hidden');
+        
+        // Cacher tous les boutons de nav au départ
+        if (adminBtn) adminBtn.classList.add('hidden');
+        if (accountBtn) accountBtn.classList.add('hidden');
 
         if (user) {
+            // Afficher les infos utilisateur et les boutons de navigation pour les utilisateurs connectés
             userInfo.classList.remove('hidden');
+            if (accountBtn) accountBtn.classList.remove('hidden');
             document.getElementById('username-display').textContent = user.username;
             document.getElementById('balance-display').textContent = `${user.balance} Jetons`;
 
             if (user.isAdmin) {
-                adminBtn.classList.remove('hidden');
-            } else {
-                adminBtn.classList.add('hidden');
+                if (adminBtn) adminBtn.classList.remove('hidden');
             }
 
+            // Gérer les différentes pages
             if (path.includes('/admin.html')) {
                 if (user.isAdmin) {
-                    adminSection.classList.remove('hidden');
+                    if (adminSection) adminSection.classList.remove('hidden');
                     fetchAdminData();
                 } else {
                     window.location.href = '/';
                 }
             } else if (hash === '#account') {
-                accountSection.classList.remove('hidden');
+                if (accountSection) accountSection.classList.remove('hidden');
                 document.getElementById('account-username').textContent = user.username;
                 document.getElementById('account-balance').textContent = user.balance;
                 if (!user.isAdmin) {
                     if (promoteAdminContainer) promoteAdminContainer.classList.remove('hidden');
                 }
             } else {
-                appSection.classList.remove('hidden');
-                myBetsSection.classList.remove('hidden');
+                if (appSection) appSection.classList.remove('hidden');
+                if (myBetsSection) myBetsSection.classList.remove('hidden');
                 fetchEvents();
                 fetchLeaderboard();
             }
         } else {
+            // Afficher les sections d'authentification pour les utilisateurs non connectés
             if (path.includes('/admin.html')) {
                 window.location.href = '/';
             }
@@ -322,10 +323,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show/hide blocked overlay
         if (user && user.isBlocked) {
             eventsList.classList.add('hidden');
-            blockedOverlay.classList.remove('hidden');
+            if (blockedOverlay) blockedOverlay.classList.remove('hidden');
         } else {
             eventsList.classList.remove('hidden');
-            blockedOverlay.classList.add('hidden');
+            if (blockedOverlay) blockedOverlay.classList.add('hidden');
         }
 
         eventsList.innerHTML = '';
@@ -554,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
         adminEventsList.addEventListener('click', async (e) => {
             if (e.target.classList.contains('close-option-btn')) {
                 const eventId = parseInt(e.target.dataset.eventId);
-                const winningOptionIndex = parseInt(e.target.dataset.option-index);
+                const winningOptionIndex = parseInt(e.target.dataset.optionIndex);
                 
                 try {
                     const response = await fetch('/api/admin/close-event', {
@@ -607,7 +608,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-        user = JSON.parse(storedUser);
+        try {
+            user = JSON.parse(storedUser);
+        } catch (e) {
+            console.error("Erreur de parsing de l'utilisateur stocké :", e);
+            localStorage.removeItem('user'); // Nettoyer les données corrompues
+        }
     }
     window.addEventListener('hashchange', updateUI);
     updateUI();
